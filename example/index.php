@@ -1,8 +1,8 @@
 <?php
 
-require_once('./vendor/autoload.php');
+require_once('../vendor/autoload.php');
 
-use Pachyderm/Dispatcher;
+use Pachyderm\Dispatcher;
 
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -15,3 +15,4 @@ $dispatcher->get('/', function() {
     return [200, ['success' => true]];
 }, FALSE);
 
+$dispatcher->dispatch();
