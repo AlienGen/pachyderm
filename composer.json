@@ -1,0 +1,24 @@
+{
+        "name": "aliengen/pachyderm",
+        "description": "A micro PHP framework for APIs",
+        "type": "library",
+        "require": {
+                "php": ">=5.6.0",
+                "psr/log": "^1.0@dev"
+        },
+        "license": "MIT",
+        "authors": [
+                {
+                        "name": "Timothé Mermet-Buffet",
+                        "email": "mermetbt@gmail.com"
+                }
+        ],
+        "minimum-stability": "dev",
+        "autoload": {
+                "psr-0": {
+                        "Pachyderm": "src/"
+                },
+                "classmap": []
+        },
+        "minimum-stability": "stable"
+}
