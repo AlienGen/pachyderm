@@ -1,9 +1,7 @@
 <?php
 
-namespace Pachyderm;
+namespace Pachyderm\Middleware;
 
 interface MiddlewareInterface {
-  public function handleBeforeRequest();
-
-  public function handleAfterRequest();
+  public function handle(\Closure $next);
 }
