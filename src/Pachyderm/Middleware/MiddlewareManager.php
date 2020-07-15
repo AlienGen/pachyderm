@@ -1,31 +1,35 @@
 <?php
 
-namespace Pachyderm;
+namespace Pachyderm\Middleware;
 
 use Pachyderm\Exceptions\MiddlewareException;
+use Pachyderm\Middleware\MiddlewareInterface;
+use Pachyderm\Middleware\MiddlewareManagerInterface;
 
-class MiddlewareManager {
+class MiddlewareManager implements MiddlewareManagerInterface {
   private $middlewares = [];
 
   public function __construct() {}
 
-  private function executeChain ($middlewareMethod) {
-    foreach($this->middlewares as $m) {
-      if ( !method_exists($m->{$middlewareMethod}) ) continue;
+  public function executeChain (\Closure $action) {
+    $next = $action;
 
-      try {
-        $m->{$middlewareMethod}();
-      } catch (\Exception $e) {
-        throw new MiddlewareException('Error in middleware ' .get_class($m)); 
-      }
-    }
+    $middlewares = array_reverse($this->middlewares);
+    
+    foreach($middlewares AS $m) {
+      $next = function() use($m, $next) {
+        return $m->handle($next);
+      };
+    }   
+
+    return $next();
   } 
 
-  public function executeChainBeforeRequest() {
-    $this->executeChain($handleBeforeRequest);
-  }
-
-  public function executeChainAfterRequest() {
-    $this->executeChain($handleAfterRequest);
+  public function registerMiddleware(MiddlewareInterface $middleware) {
+    try {
+      $this->middlewares[] = $middleware;
+    } catch (\Exception $e) {
+      throw new MiddlewareException('Error registering middledware' . get_class($middleware));
+    }
   }
 }
