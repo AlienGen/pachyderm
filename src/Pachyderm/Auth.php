@@ -7,13 +7,6 @@ class Auth
     protected static $_instance = NULL;
     protected $_user = NULL;
 
-    public function __construct() {
-        if ( !session_status() == PHP_SESSION_ACTIVE ) {
-            session_start();
-        }
-        $this->_user = isset($_SESSION['PACHYDERM_USER']) ? $_SESSION['PACHYDERM_USER'] : NULL;
-    }
-
     public static function getInstance() {
         if(!self::$_instance) {
             self::$_instance = new Auth();
@@ -35,6 +28,6 @@ class Auth
 
     public function setUser($user) {
         $this->_user = $user;
-        $_SESSION['PACHYDERM_USER'] = $user;
+        
     }
 }
