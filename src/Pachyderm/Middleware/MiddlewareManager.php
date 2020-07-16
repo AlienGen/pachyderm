@@ -11,16 +11,37 @@ class MiddlewareManager implements MiddlewareManagerInterface {
 
   public function __construct() {}
 
-  public function executeChain (\Closure $action) {
-    $next = $action;
-
-    $middlewares = array_reverse($this->middlewares);
+  private function mergeMiddleware($additional, $blacklist) {
+    // remove blacklist 
+    $middlewares = $this->middlewares;
+    foreach($middlewares as $key => $candidateForRemoval) {
+      $candidateClass = get_class($candidateForRemoval);
+      foreach ($blacklist as $toRemove) {
+        if ( $candidateClass == $toRemove ) {
+          unset($middlewares[$key]);
+        }
+      }
+    }
     
-    foreach($middlewares AS $m) {
+    // merge additional
+    foreach ($additional as $toAdd) {
+      $middlewares[] = $toAdd;
+    }
+
+    return $middlewares;
+  }
+
+  public function executeChain (\Closure $action, $additional =[], $blacklist =[]) {
+    $middlewares = array_reverse(
+      $this->mergeMiddleware($additional, $blacklist)
+    );
+    $next = $action;
+    
+    foreach($middlewares as $m) {
       $next = function() use($m, $next) {
         return $m->handle($next);
       };
-    }   
+    } 
 
     return $next();
   } 

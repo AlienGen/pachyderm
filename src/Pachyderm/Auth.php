@@ -8,7 +8,9 @@ class Auth
     protected $_user = NULL;
 
     public function __construct() {
-        session_start();
+        if ( !session_status() == PHP_SESSION_ACTIVE ) {
+            session_start();
+        }
         $this->_user = isset($_SESSION['PACHYDERM_USER']) ? $_SESSION['PACHYDERM_USER'] : NULL;
     }
 
