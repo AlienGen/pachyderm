@@ -9,7 +9,7 @@ use Pachyderm\Middleware\PreflightRequestMiddleware;
 use Pachyderm\Middleware\TimerMiddleware;
 use Pachyderm\Middleware\DbSessionMiddleware;
 use Pachyderm\Middleware\SessionMiddleware;
-use Pachyderm\Middleware\AuthMiddleware;
+use Pachyderm\Middleware\SessionAuthMiddleware;
 use Pachyderm\Middleware\JSONEncoderMiddleware;
 
 
@@ -24,7 +24,7 @@ $dispatcher->registerMiddlewares([
     JSONEncoderMiddleware::class,
     PreflightRequestMiddleware::class,
     SessionMiddleware::class,
-    AuthMiddleware::class,
+    SessionAuthMiddleware::class,
     TimerMiddleware::class,
     DbSessionMiddleware::class
 ]);
@@ -34,9 +34,9 @@ $dispatcher->registerMiddlewares([
  * - Blacklists the Auth middleware registered globally above
  */
 $dispatcher->get('/login', function() {
-    Auth::setInstanceUser([ 'name' => 'Alan Turing', 'id' => 0]);
+    $_SESSION['PACHYDERM_USER'] = [ 'name' => 'Alan Turing', 'id' => 0];
     return [200, ['success' => true]];
-}, [], [AuthMiddleware::class]);
+}, [], [SessionAuthMiddleware::class]);
 
 /**
  * Protected route
