@@ -114,9 +114,41 @@ class Db
             $sql .= $column.' = "'.self::escape($value).'",';
         }
         $sql = (substr($sql, 0, -1));
-        $sql .= ' WHERE '.self::escape($where);
+        $sql .= ' WHERE ';
+        
+        $sql .= self::parseWhere($where);
 
         Db::query($sql);
+    }
+
+    private function parseWhere($array) {
+        $op = array_key_first($array);
+        $values = $array[$op];
+        $arraySize = count($values);
+
+        switch ($op) {
+            case 'AND':
+            case 'OR':
+                $sql = '(';
+                for ($i = 0; $i < $arraySize; $i++) {
+                    if ($i === $arraySize - 1){
+                        $sql .= self::parseWhere($values[$i]);
+                    break;
+                    }
+                    $sql .= self::parseWhere($values[$i]) . ' ' .$op. ' ';
+                }
+                $sql .= ')';
+            break;
+
+            default:
+                if($arraySize > 1) {
+                    $sql = $values[0] . ' ' . $op .' "' . self::escape($values[1]) . '"';
+                    break;
+                }
+                $sql = $values[0] . ' ' . $op;
+            break;
+        }
+        return $sql;
     }
 }
 
