@@ -3,6 +3,7 @@
 require_once('../vendor/autoload.php');
 
 use Pachyderm\Dispatcher;
+use Pachyderm\Auth;
 use Pachyderm\Middleware\MiddlewareManager;
 use Pachyderm\Middleware\PreflightRequestMiddleware;
 use Pachyderm\Middleware\TimerMiddleware;
@@ -30,13 +31,19 @@ $dispatcher->registerMiddlewares([
 
 /**
  * Unprotected route
+ * - Blacklists the Auth middleware registered globally above
  */
-$dispatcher->get('/', function() {
+$dispatcher->get('/login', function() {
+    Auth::setInstanceUser([ 'name' => 'Alan Turing', 'id' => 0]);
     return [200, ['success' => true]];
 }, [], [AuthMiddleware::class]);
 
 /**
- * Protected rotue
+ * Protected route
+ * - All middleware is included
  */
+$dispatcher->get('/protected', function() {
+    return [200, ['success' => true]];
+}, [], []);
 
 $dispatcher->dispatch();
