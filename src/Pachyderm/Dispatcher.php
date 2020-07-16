@@ -204,6 +204,7 @@ class Dispatcher
 		$bodyParams = json_decode(file_get_contents('php://input'), true);
 		$arguments['data'] = $bodyParams;
 
+		
 		// ensure handler object is complete
 		if ( !array_key_exists('localMiddleware', $handler) ) {
 			$handler['localMiddleware'] = [];	
