@@ -29,6 +29,10 @@ class Auth
         return $this->_user;
     }
 
+    public static function setInstanceUser($user) {
+        self::getInstance()->setUser($user);
+    }
+
     public function setUser($user) {
         $this->_user = $user;
         $_SESSION['PACHYDERM_USER'] = $user;
