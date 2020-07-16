@@ -32,50 +32,68 @@ class Dispatcher
 		} 
 	}
 
-
-
-	private function registerRoute($method, $endpoint, $action, $localMiddleware, $excludeMiddleware) {
-		$endpoint = $this->_baseURL . $endpoint;
-		$this->_routes[$method][$endpoint] = ['action' => $action, 'endpoint' => $endpoint, 'middleware' => $localMiddleware, 'exclude' => $excludeMiddleware];
-	}
-
 	/**
 	 * Declare a new GET endpoint.
 	 */
-	public function get($endpoint, \Closure $action, $auth = TRUE, $localMiddleware =[], $excludeMiddleware = [])
+	public function get($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
 	{
-		$this->registerRoute('GET', $endpoint, $action, $localMiddleware, $excludeMiddleware);
+		$endpoint = $this->_baseURL . $endpoint;
+		$this->_routes['GET'][$endpoint] = [
+			'action' => $action, 
+			'endpoint' => $endpoint,
+			'localMiddleware' => $localMiddleware,
+			'blacklistMiddleware' => $blacklistMiddleware
+		];
 	}
 
 	/**
 	 * Declare a new POST endpoint.
 	 */
-	public function post($endpoint, \Closure $action, $auth = TRUE)
+	public function post($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
 	{
-	    $endpoint = $this->_baseURL . $endpoint;
-		$this->_routes['POST'][$endpoint] = ['auth' => $auth, 'action' => $action, 'endpoint' => $endpoint];
+		$endpoint = $this->_baseURL . $endpoint;
+		$this->_routes['POST'][$endpoint] = [
+			'action' => $action, 
+			'endpoint' => $endpoint,
+			'localMiddleware' => $localMiddleware,
+			'blacklistMiddleware' => $blacklistMiddleware
+		];
 	}
 
 	/**
 	 * Declare a new PUT endpoint.
 	 */
-	public function put($endpoint, $action, $auth = TRUE)
+	public function put($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
 	{
-	    $endpoint = $this->_baseURL . $endpoint;
-		$this->_routes['PUT'][$endpoint] = ['auth' => $auth, 'action' => $action, 'endpoint' => $endpoint];
+	  $endpoint = $this->_baseURL . $endpoint;
+		$this->_routes['PUT'][$endpoint] = [
+			'action' => $action, 
+			'endpoint' => $endpoint,
+			'localMiddleware' => $localMiddleware,
+			'blacklistMiddleware' => $blacklistMiddleware
+		];
 	}
 
 	/**
 	 * Declare a new DELETE endpoint.
 	 */
-	public function delete($endpoint, $action, $auth = TRUE)
+	public function delete($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
 	{
-	    $endpoint = $this->_baseURL . $endpoint;
-		$this->_routes['DELETE'][$endpoint] = ['auth' => $auth, 'action' => $action, 'endpoint' => $endpoint];
+		$endpoint = $this->_baseURL . $endpoint;
+		$this->_routes['DELETE'][$endpoint] = [
+			'action' => $action, 
+			'endpoint' => $endpoint,
+			'localMiddleware' => $localMiddleware,
+			'blacklistMiddleware' => $blacklistMiddleware
+		];
 	}
 
 	/**
-	 * Dispatch the request and execute the right action.
+	 * Dispatch the request:
+	 * - resolve path, 
+	 * - resolve parameteters,
+	 * - match an action,
+	 * - and execute
 	 */
 	public function dispatch()
 	{
@@ -164,7 +182,7 @@ class Dispatcher
 			}
 		}
 
-		// reject if no action provided
+		// no action provided, provider default 404 action
 		if(empty($matchedHandler))
 		{
 			$matchedHandler['action'] = function() use($method, $path) {
@@ -173,73 +191,49 @@ class Dispatcher
 			};
 		}
 
-		// check auth for action
-		// if(!$this->checkAuthentication($action))
-		// {
-		// 	return $this->handle(function() use($action) {
-		// 		return [401, 'Access denied!'];
-		// 	});
-		// }
-
-		return $this->handle($matchedHandler['action'], $argumentsList);
+		return $this->handle($matchedHandler, $argumentsList);
 	}
-
-	// TODO: export to middleware
-	protected function checkAuthentication($action)
-	{
-		if($action['auth'] == FALSE)
-		{
-			return TRUE;
-		}
-
-		if(!Auth::getUser()) {
-			return FALSE;
-		}
-
-		return TRUE;
-	}
-
 	
 
 	/**
 	 * Set data, execute the action and return the json_encoded value.
 	 */
-	protected function handle($action, $arguments = array())
+	protected function handle($handler, $arguments = array())
 	{
+		// extract any body params for POST, PUT, or DELETE
 		$bodyParams = json_decode(file_get_contents('php://input'), true);
 		$arguments['data'] = $bodyParams;
 
-		$response = [200, NULL]; // empty default response
-		$requestClosure = function() use ($action, $arguments) {
-			return call_user_func_array($action, $arguments);
+		// ensure handler object is complete
+		if ( !array_key_exists('localMiddleware', $handler) ) {
+			$handler['localMiddleware'] = [];	
+		}
+
+		if ( !array_key_exists('blacklistMiddleware', $handler) ) {
+			$handler['blacklistMiddleware'] = [];	
+		}
+
+
+		// empty default response
+		$response = [200, NULL]; 
+
+		// wrap action in a closure
+		$requestClosure = function() use ($handler, $arguments) {
+			return call_user_func_array($handler['action'], $arguments);
 		};
 
-		$response =	$this->_middlewareManager->executeChain($requestClosure);
+		// ask middleware manager to execute middleware chain before the request
+		$response =	$this
+			->_middlewareManager
+			->executeChain(
+				$requestClosure, 
+				$handler['localMiddleware'], 
+				$handler['blacklistMiddleware']
+			);
 
-    //     try {
-    //     	$db = Db::getInstance()->mysql();
-    //         $db->begin_transaction();
-
-    //         $arguments['data'] = $bodyParams;
-
-
-    //         if($response[0] < 300)
-    //             $db->commit();
-    //         else
-    //             $db->rollBack();
-    //     } catch(\Exception $e) {
-		// 	$response = [400, ['error' => $e->getMessage()]];
-    //         $db->rollBack();
-		// }
-
-		header('Content-Type: application/json');
-		if(count($response) != 2 && is_integer($response[0]) && !is_array($response[1]))
-		{
-			echo json_encode(array('error' => 'Invalid response format!'));
-			return false;
-		}
+		// set headers and echo body response
 		header('HTTP/1.1 ' . $response[0] . ' ' . $this->httpCode($response[0]));
-		echo json_encode($response[1]);
+		echo $response[1];
 		return true;
 	}
 
