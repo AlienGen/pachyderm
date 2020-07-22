@@ -29,6 +29,9 @@ class Db
     }
 
     public static function escape($field) {
+        if(is_null($field)) {
+            return null;
+        } 
         $db = self::getInstance();
         return $db->mysql()->real_escape_string($field);
     }
@@ -110,14 +113,20 @@ class Db
      */
     public static function update($table, array $content, $where) {
         $sql = 'UPDATE '.$table.' SET ';
+        $cols = array();
         foreach ($content as $column => $value) {
-            $sql .= $column.' = "'.self::escape($value).'",';
+            if($value === NULL) {
+                $cols[] = $column.' = NULL';
+            }
+            else
+                $cols[] = $column.' = "'.self::escape($value).'"';
         }
-        $sql = (substr($sql, 0, -1));
-        $sql .= ' WHERE ';
-        
-        $sql .= self::parseWhere($where);
+        $sql .= join(',', $cols);
 
+        if(!empty($where)) {
+            $sql .= ' WHERE ';
+            $sql .= self::parseWhere($where);
+        }
         Db::query($sql);
     }
 
