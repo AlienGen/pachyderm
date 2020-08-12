@@ -8,8 +8,8 @@ class PreflightRequestMiddleware implements MiddlewareInterface{
   public function handle(\Closure $next) {
     $method = $_SERVER['REQUEST_METHOD'];
     if($method == 'OPTIONS') {
-			return [200, array('options' => 'OK')];		
-		}
+        return [200, array('options' => 'OK')];
+    }
     $response = $next();
     return $response;
   }

@@ -11,6 +11,4 @@ class SessionMiddleware implements MiddlewareInterface {
     session_start();
     return $next();
   }
-
-  public function handleAfterRequest() {}
 }
