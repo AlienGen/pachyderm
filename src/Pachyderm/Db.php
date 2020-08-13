@@ -95,8 +95,8 @@ class Db
      * @param array $payload Data to insert
      * @return false|integer Return new inserted id if success, false otherwise
      */
-    public static function insert($table, array $payload) {
-        $sql = 'INSERT INTO '.$table.'('.implode(', ', array_keys($payload)).') VALUES(';
+    public static function insert($table, array $content) {
+        $sql = 'INSERT INTO ' . $table . ' SET ';
         $cols = array();
         foreach ($content as $column => $value) {
             if($value === NULL) {
