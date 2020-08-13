@@ -31,7 +31,7 @@ class Db
     public static function escape($field) {
         if(is_null($field)) {
             return null;
-        } 
+        }
         $db = self::getInstance();
         return $db->mysql()->real_escape_string($field);
     }
@@ -97,10 +97,15 @@ class Db
      */
     public static function insert($table, array $payload) {
         $sql = 'INSERT INTO '.$table.'('.implode(', ', array_keys($payload)).') VALUES(';
-        foreach (array_values($payload) as $value) {
-            $sql .= "'".self::escape($value)."',";
+        $cols = array();
+        foreach ($content as $column => $value) {
+            if($value === NULL) {
+                $cols[] = $column.' = NULL';
+            }
+            else
+                $cols[] = $column.' = "'.self::escape($value).'"';
         }
-        $sql = (substr($sql, 0, -1)).')';
+        $sql .= join(',', $cols);
 
         self::query($sql);
         return self::getInstance()->getInsertedId();
