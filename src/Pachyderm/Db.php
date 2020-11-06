@@ -192,7 +192,7 @@ class Db
         return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
     }
 
-    private function parseWhere($array) {
+    private static function parseWhere($array) {
         $op = array_key_first($array);
         $values = $array[$op];
         $arraySize = count($values);

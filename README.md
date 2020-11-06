@@ -17,6 +17,12 @@ composer require aliengen/pachyderm
 ```php
 use Pachyderm\Dispatcher;
 use Pachyderm\Middleware\MiddlewareManager;
+use Pachyderm\Middleware\PreflightRequestMiddleware;
+use Pachyderm\Middleware\TimerMiddleware;
+use Pachyderm\Middleware\DbSessionMiddleware;
+use Pachyderm\Middleware\SessionMiddleware;
+use Pachyderm\Middleware\SessionAuthMiddleware;
+use Pachyderm\Middleware\JSONEncoderMiddleware;
 
 $dispatcher = new Dispatcher('/api',  new MiddlewareManager());
 
