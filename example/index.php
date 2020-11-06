@@ -12,8 +12,6 @@ use Pachyderm\Middleware\SessionMiddleware;
 use Pachyderm\Middleware\SessionAuthMiddleware;
 use Pachyderm\Middleware\JSONEncoderMiddleware;
 
-
-
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASSWORD', '12345678');

@@ -92,6 +92,53 @@ class Db
 
     /**
      * @param $table String Table name
+     * @param $where Array Where condition
+     * @param $order Array Order by
+     * @param $offset integer Offset
+     * @param $limit integer Limit
+     * @return array Return array of objects
+     */
+    public static function findAll($table, $where = NULL, $order = NULL, $offset = 0, $limit = 50) {
+        $sql = 'SELECT * FROM `' . $table . '`';
+
+        if(!empty($where)) {
+            $sql .= ' WHERE ';
+            $sql .= self::parseWhere($where);
+        }
+
+        if(!empty($order)) {
+            $orders = [];
+            foreach($order AS $k => $v) {
+                $orders[] = '`' . $k . '` ' . $v;
+            }
+            $sql .= ' ORDER BY ' . join(', ', $orders);
+        }
+
+        $sql .= ' LIMIT ' . $offset . ', ' . $limit;
+
+        $results = self::query($sql);
+
+        $items = [];
+        while($item = $results->fetch_assoc()) {
+            $items[] = $item;
+        }
+        return $items;
+    }
+
+    /**
+     * @param $table String Table name
+     * @param $key Primary Key
+     * @param $value Value
+     * @return false|array Return element if success, false otherwise
+     */
+    public static function findOne($table, $key, $value) {
+        $result = Db::query('SELECT * FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
+        $data = $result->fetch_assoc();
+        return $data;
+    }
+
+    /**
+     * @param $table String Table name
      * @param array $payload Data to insert
      * @return false|integer Return new inserted id if success, false otherwise
      */
@@ -132,7 +179,17 @@ class Db
             $sql .= ' WHERE ';
             $sql .= self::parseWhere($where);
         }
-        Db::query($sql);
+        self::query($sql);
+    }
+
+    /**
+     * @param $table String Table name
+     * @param $key Primary Key
+     * @param $value Value
+     * @return false|true Return true if success, false otherwise
+     */
+    public static function delete($table, $key, $value) {
+        return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
     }
 
     private function parseWhere($array) {
