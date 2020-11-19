@@ -122,12 +122,6 @@ class Dispatcher
         {
             /**
              * Match URL
-             *
-             * WARNING: Known bug, the first endpoint with params to match will be choosen!
-             *          Example for the path: /order/125/update
-             *            - /order
-             *            - /order/{id}   <-- This endpoint will be choosen
-             *            - /order/{id}/update
              */
             foreach($this->_routes[$method] AS $endpoint => $handler)
             {
@@ -147,14 +141,15 @@ class Dispatcher
                  * Generate the regex for URL matching
                  */
                 $arguments = array();
+                $matcher = $endpoint;
                 foreach($params[0] AS $param)
                 {
                     $param_name = substr($param, 1, -1);
                     $regexp = '(?P<' . $param_name . '>[^/]+)';
-                    $endpoint = str_replace($param, $regexp, $endpoint);
+                    $matcher = str_replace($param, $regexp, $endpoint);
                     $arguments[] = $param_name;
                 }
-                $endpoint_matcher = '@^' . $endpoint . '|/?$@';
+                $endpoint_matcher = '@^' . $matcher . '|/?$@';
 
                 /**
                  * Match the endpoint.
@@ -166,6 +161,17 @@ class Dispatcher
                  */
                 if(empty($args[0]))
                 {
+                    continue;
+                }
+
+                /**
+                 * Check URL length match with endpoint length
+                 */
+                $subfoldersA = explode('/', $path);
+                $subfoldersB = explode('/', $endpoint);
+
+                $length = count($subfoldersA);
+                if($length != count($subfoldersB)) {
                     continue;
                 }
 
