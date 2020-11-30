@@ -136,16 +136,17 @@ class Db
             $result = Db::query('SELECT * FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
         } else {
             $query = 'SELECT * FROM `' . $table . '` WHERE ';
-            for ($i = 0; $i < count($key); $i++) {
+            $keyLength = count($key);
+            for ($i = 0; $i < $keyLength; $i++) {
                 $query .= $key[$i] . '="' . Db::escape($value[$i]) . '"';
 
-                if ($i != count($key) - 1)
+                if ($i != $keyLength - 1)
                     $query .= ' AND ';
             }
             $result = Db::query($query);
         }
-        $data = $result->fetch_assoc();
-        return $data;
+
+        return $result->fetch_assoc();
     }
 
     /**
@@ -202,17 +203,17 @@ class Db
     public static function delete($table, $key, $value) {
         if (!is_array($key) && !is_array($value)) {
             return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
-        } else {
-            $query = 'DELETE FROM `' . $table . '` WHERE ';
-            for ($i = 0; $i < count($key); $i++) {
-                $query .= '`' . $key[$i] . '`="' . Db::escape($value[$i]) . '"';
-
-                if ($i != count($key) - 1)
-                    $query .= ' AND ';
-            }
-
-            $result = Db::query($query);
         }
+
+        $query = 'DELETE FROM `' . $table . '` WHERE ';
+        for ($i = 0; $i < count($key); $i++) {
+            $query .= '`' . $key[$i] . '`="' . Db::escape($value[$i]) . '"';
+
+            if ($i != count($key) - 1)
+                $query .= ' AND ';
+        }
+
+        return self::query($query);
     }
 
     private static function parseWhere($array) {
