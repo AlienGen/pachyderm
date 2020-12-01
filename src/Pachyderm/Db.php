@@ -132,10 +132,10 @@ class Db
      * @return false|array Return element if success, false otherwise
      */
     public static function findOne($table, $key, $value) {
+        $query = 'SELECT * FROM `' . $table . '` WHERE ';
         if (!is_array($key) && !is_array($value)) {
-            $result = Db::query('SELECT * FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
+            $query .= $key . '="' . Db::escape($value) . '"';
         } else {
-            $query = 'SELECT * FROM `' . $table . '` WHERE ';
             $keyLength = count($key);
             for ($i = 0; $i < $keyLength; $i++) {
                 $query .= $key[$i] . '="' . Db::escape($value[$i]) . '"';
@@ -143,9 +143,9 @@ class Db
                 if ($i != $keyLength - 1)
                     $query .= ' AND ';
             }
-            $result = Db::query($query);
         }
 
+        $result = Db::query($query);
         return $result->fetch_assoc();
     }
 
