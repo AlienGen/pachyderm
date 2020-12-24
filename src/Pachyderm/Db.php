@@ -156,15 +156,8 @@ class Db
      */
     public static function insert($table, array $content) {
         $sql = 'INSERT INTO ' . $table . ' SET ';
-        $cols = array();
-        foreach ($content as $column => $value) {
-            if($value === NULL) {
-                $cols[] = $column.' = NULL';
-            }
-            else
-                $cols[] = $column.' = "'.self::escape($value).'"';
-        }
-        $sql .= join(',', $cols);
+        
+        $sql .= self::formatColumns($content);
 
         self::query($sql);
         return self::getInstance()->getInsertedId();
@@ -177,21 +170,34 @@ class Db
      */
     public static function update($table, array $content, $where) {
         $sql = 'UPDATE '.$table.' SET ';
-        $cols = array();
-        foreach ($content as $column => $value) {
-            if($value === NULL) {
-                $cols[] = $column.' = NULL';
-            }
-            else
-                $cols[] = $column.' = "'.self::escape($value).'"';
-        }
-        $sql .= join(',', $cols);
+
+        $sql .= self::formatColumns($content);
 
         if(!empty($where)) {
             $sql .= ' WHERE ';
             $sql .= self::parseWhere($where);
         }
         self::query($sql);
+    }
+
+    private function formatColumns(array $columns) {
+        $cols = array();
+        foreach ($columns as $column => $value) {
+            if($value === NULL) {
+                $cols[] = $column.' = NULL';
+            }
+            elseif ($value === true) {
+                $cols[] = $column.' = 1';
+            }
+            elseif ($value === false) {
+                $cols[] = $column.' = 0';
+            }
+            else
+                $cols[] = $column.' = "'.self::escape($value).'"';
+        }
+        $sql = join(',', $cols);
+
+        return $sql;
     }
 
     /**
