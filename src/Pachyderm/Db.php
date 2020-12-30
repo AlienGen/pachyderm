@@ -180,7 +180,7 @@ class Db
         self::query($sql);
     }
 
-    private function formatColumns(array $columns) {
+    private static function formatColumns(array $columns) {
         $cols = array();
         foreach ($columns as $column => $value) {
             if($value === NULL) {
