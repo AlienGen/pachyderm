@@ -146,7 +146,7 @@ class Dispatcher
                 {
                     $param_name = substr($param, 1, -1);
                     $regexp = '(?P<' . $param_name . '>[^/]+)';
-                    $matcher = str_replace($param, $regexp, $endpoint);
+                    $matcher = str_replace($param, $regexp, $matcher);
                     $arguments[] = $param_name;
                 }
                 $endpoint_matcher = '@^' . $matcher . '|/?$@';
