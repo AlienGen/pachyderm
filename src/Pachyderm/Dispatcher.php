@@ -13,7 +13,8 @@ class Dispatcher
         'POST' => array(),
         'PUT' => array(),
         'DELETE' => array(),
-        'OPTIONS' => array()
+        'OPTIONS' => array(),
+        'HEAD' => array()
     );
 
     protected $_middlewareManager;
@@ -103,6 +104,13 @@ class Dispatcher
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = $_SERVER['REQUEST_URI'];
 
+        // Unrecognized method
+        if(empty($this->_routes[$method]))
+        {
+            // Stop there
+            die();
+        }
+
         /**
          * BEGIN HANDLER MATHCHING AND ARGUMENT EXTRACTION
          */
@@ -188,7 +196,7 @@ class Dispatcher
             }
         }
 
-        // no action provided, provider default 404 action
+        // no action provided, provide default 404 action
         if(empty($matchedHandler))
         {
             $matchedHandler['action'] = function() use($method, $path) {
