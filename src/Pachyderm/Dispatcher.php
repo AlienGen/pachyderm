@@ -247,7 +247,10 @@ class Dispatcher
             );
 
         // set headers and echo body response
-        header('HTTP/1.1 ' . $response[0] . ' ' . $this->httpCode($response[0]));
+        $httpCode = $this->httpCode($response[0]);
+        if(!empty($httpCode)) {
+            header('HTTP/1.1 ' . $response[0] . ' ' . $httpCode);
+        }
         echo $response[1];
         return true;
     }
@@ -265,7 +268,7 @@ class Dispatcher
             case 412: return 'Precondition Failed';
             case 500: return 'Internal error';
         }
-        return 'Undefined';
+        return NULL;
     }
 
 
