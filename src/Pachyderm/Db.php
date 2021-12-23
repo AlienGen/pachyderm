@@ -155,9 +155,13 @@ class Db
      * @return false|integer Return new inserted id if success, false otherwise
      */
     public static function insert($table, array $content) {
-        $sql = 'INSERT INTO ' . $table . ' SET ';
-        
-        $sql .= self::formatColumns($content);
+        $sql = 'INSERT INTO ' . $table;
+        if(empty($content)) {
+            $sql .= ' VALUES ()';
+        }
+        else {
+            $sql .= ' SET ' . self::formatColumns($content);
+        }
 
         self::query($sql);
         return self::getInstance()->getInsertedId();
@@ -252,4 +256,3 @@ class Db
         return $sql;
     }
 }
-
