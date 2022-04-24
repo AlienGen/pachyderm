@@ -25,9 +25,10 @@ class Dispatcher
         $this->_middlewareManager = $middlewareManager;
     }
 
-    public function registerMiddlewares($middlewares) {
-        if ( is_array($middlewares) ) {
-            foreach($middlewares as $m) {
+    public function registerMiddlewares($middlewares)
+    {
+        if (is_array($middlewares)) {
+            foreach ($middlewares as $m) {
                 $this->_middlewareManager->registerMiddleware(new $m());
             }
         }
@@ -36,7 +37,7 @@ class Dispatcher
     /**
      * Declare a new GET endpoint.
      */
-    public function get($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
+    public function get($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['GET'][$endpoint] = [
@@ -50,7 +51,7 @@ class Dispatcher
     /**
      * Declare a new POST endpoint.
      */
-    public function post($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
+    public function post($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['POST'][$endpoint] = [
@@ -64,9 +65,9 @@ class Dispatcher
     /**
      * Declare a new PUT endpoint.
      */
-    public function put($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
+    public function put($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
     {
-      $endpoint = $this->_baseURL . $endpoint;
+        $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['PUT'][$endpoint] = [
             'action' => $action,
             'endpoint' => $endpoint,
@@ -78,7 +79,7 @@ class Dispatcher
     /**
      * Declare a new DELETE endpoint.
      */
-    public function delete($endpoint, \Closure $action, $localMiddleware =[], $blacklistMiddleware = [])
+    public function delete($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['DELETE'][$endpoint] = [
@@ -105,8 +106,7 @@ class Dispatcher
         $uri = $_SERVER['REQUEST_URI'];
 
         // Unrecognized method
-        if(empty($this->_routes[$method]))
-        {
+        if (empty($this->_routes[$method])) {
             // Stop there
             die();
         }
@@ -120,19 +120,16 @@ class Dispatcher
         $path = substr($uri, 0, $end ? $end : strlen($uri));
 
         // Attempt to match path directly
-        if(!empty($this->_routes[$method][$path]))
-        {
+        if (!empty($this->_routes[$method][$path])) {
             $matchedHandler = $this->_routes[$method][$path];
         }
 
         // Can't match directly, so try to match route against parameters
-        if($matchedHandler === NULL)
-        {
+        if ($matchedHandler === NULL) {
             /**
              * Match URL
              */
-            foreach($this->_routes[$method] AS $endpoint => $handler)
-            {
+            foreach ($this->_routes[$method] as $endpoint => $handler) {
                 /**
                  * Retrieve the params from the endpoint.
                  */
@@ -140,8 +137,7 @@ class Dispatcher
                 preg_match_all($paramRegex, $endpoint, $params);
 
                 /* The endpoint wasn't requiring any param, it should be matched before, we skip it. */
-                if(empty($params[0]))
-                {
+                if (empty($params[0])) {
                     continue;
                 }
 
@@ -150,8 +146,7 @@ class Dispatcher
                  */
                 $arguments = array();
                 $matcher = $endpoint;
-                foreach($params[0] AS $param)
-                {
+                foreach ($params[0] as $param) {
                     $param_name = substr($param, 1, -1);
                     $regexp = '(?P<' . $param_name . '>[^/]+)';
                     $matcher = str_replace($param, $regexp, $matcher);
@@ -167,8 +162,7 @@ class Dispatcher
                 /**
                  * Endpoint doesn't match.
                  */
-                if(empty($args[0]))
-                {
+                if (empty($args[0])) {
                     continue;
                 }
 
@@ -179,7 +173,7 @@ class Dispatcher
                 $subfoldersB = explode('/', $endpoint);
 
                 $length = count($subfoldersA);
-                if($length != count($subfoldersB)) {
+                if ($length != count($subfoldersB)) {
                     continue;
                 }
 
@@ -187,8 +181,7 @@ class Dispatcher
                  * Set action and retrieve the list of values.
                  */
                 $matchedHandler = $handler;
-                foreach($arguments AS $name)
-                {
+                foreach ($arguments as $name) {
                     $argumentsList[$name] = $args[$name];
                 }
 
@@ -197,9 +190,8 @@ class Dispatcher
         }
 
         // no action provided, provide default 404 action
-        if(empty($matchedHandler))
-        {
-            $matchedHandler['action'] = function() use($method, $path) {
+        if (empty($matchedHandler)) {
+            $matchedHandler['action'] = function () use ($method, $path) {
                 $response = array('error' => 'Not found!', 'method' => $method, 'route' => $path);
                 return [404, $response];
             };
@@ -216,15 +208,17 @@ class Dispatcher
     {
         // extract any body params for POST, PUT, or DELETE
         $bodyParams = json_decode(file_get_contents('php://input'), true);
-        $arguments['data'] = $bodyParams;
 
+        if (!empty($bodyParams)) {
+            $arguments['data'] = $bodyParams;
+        }
 
         // ensure handler object is complete
-        if ( !array_key_exists('localMiddleware', $handler) ) {
+        if (!array_key_exists('localMiddleware', $handler)) {
             $handler['localMiddleware'] = [];
         }
 
-        if ( !array_key_exists('blacklistMiddleware', $handler) ) {
+        if (!array_key_exists('blacklistMiddleware', $handler)) {
             $handler['blacklistMiddleware'] = [];
         }
 
@@ -233,8 +227,12 @@ class Dispatcher
         $response = [200, NULL];
 
         // wrap action in a closure
-        $requestClosure = function() use ($handler, $arguments) {
-            return call_user_func_array($handler['action'], $arguments);
+        $requestClosure = function () use ($handler, $arguments) {
+            try {
+                return call_user_func_array($handler['action'], $arguments);
+            } catch (\Error $e) {
+                return [500, 'Malformed method prototype! ' . $e->getMessage()];
+            }
         };
 
         // ask middleware manager to execute middleware chain before the request
@@ -248,7 +246,7 @@ class Dispatcher
 
         // set headers and echo body response
         $httpCode = $this->httpCode($response[0]);
-        if(!empty($httpCode)) {
+        if (!empty($httpCode)) {
             header('HTTP/1.1 ' . $response[0] . ' ' . $httpCode);
         }
         echo $response[1];
@@ -257,20 +255,24 @@ class Dispatcher
 
     protected function httpCode($code)
     {
-        switch($code)
-        {
-            case 200: return 'OK';
-            case 201: return 'Created';
-            case 400: return 'Bad Request';
-            case 401: return 'Unauthorized';
-            case 403: return 'Forbidden';
-            case 404: return 'Not found';
-            case 412: return 'Precondition Failed';
-            case 500: return 'Internal error';
+        switch ($code) {
+            case 200:
+                return 'OK';
+            case 201:
+                return 'Created';
+            case 400:
+                return 'Bad Request';
+            case 401:
+                return 'Unauthorized';
+            case 403:
+                return 'Forbidden';
+            case 404:
+                return 'Not found';
+            case 412:
+                return 'Precondition Failed';
+            case 500:
+                return 'Internal error';
         }
         return NULL;
     }
-
-
 };
-
