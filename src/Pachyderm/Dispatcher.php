@@ -228,11 +228,7 @@ class Dispatcher
 
         // wrap action in a closure
         $requestClosure = function () use ($handler, $arguments) {
-            try {
-                return call_user_func_array($handler['action'], $arguments);
-            } catch (\Error $e) {
-                return [500, 'Malformed method prototype! ' . $e->getMessage()];
-            }
+            return call_user_func_array($handler['action'], array_values($arguments));
         };
 
         // ask middleware manager to execute middleware chain before the request
