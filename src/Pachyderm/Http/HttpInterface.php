@@ -15,7 +15,8 @@ interface HttpInterface
     /**
      * Response part
      */
-    public function setHeader(string $header): HttpInterface;
+    public function setStatusCode(int $code): HttpInterface;
+    public function setHeader(string $header, string $value): HttpInterface;
     public function setBody(string $body): HttpInterface;
     public function send(): void;
 }

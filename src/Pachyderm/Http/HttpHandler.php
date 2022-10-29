@@ -4,6 +4,7 @@ namespace Pachyderm\Http;
 
 class HttpHandler implements HttpInterface
 {
+    protected $_statusCode;
     protected array $_headers = array();
     protected string $_body;
 
@@ -22,9 +23,15 @@ class HttpHandler implements HttpInterface
         return file_get_contents('php://input');
     }
 
-    public function setHeader(string $header): HttpInterface
+    public function setStatusCode(int $statusCode): HttpInterface
     {
-        $this->_headers[] = $header;
+        $this->_statusCode = $statusCode;
+        return $this;
+    }
+
+    public function setHeader(string $header, string $value): HttpInterface
+    {
+        $this->_headers[$header] = $value;
         return $this;
     }
 
@@ -36,9 +43,34 @@ class HttpHandler implements HttpInterface
 
     public function send(): void
     {
-        foreach ($this->_headers as $header) {
-            header($header);
+        $httpCode = $this->httpCode($this->_statusCode);
+        header('HTTP/1.1 ' . $this->_statusCode . ' ' . $httpCode);
+        foreach ($this->_headers as $header => $value) {
+            header($header . ': ' . $value);
         }
         echo $this->_body;
+    }
+
+    protected function httpCode(string|int $code): string|null
+    {
+        switch ($code) {
+            case 200:
+                return 'OK';
+            case 201:
+                return 'Created';
+            case 400:
+                return 'Bad Request';
+            case 401:
+                return 'Unauthorized';
+            case 403:
+                return 'Forbidden';
+            case 404:
+                return 'Not found';
+            case 412:
+                return 'Precondition Failed';
+            case 500:
+                return 'Internal error';
+        }
+        return NULL;
     }
 }

@@ -287,38 +287,10 @@ class Dispatcher
                 $handler['blacklistMiddleware']
             );
 
-        // set headers and echo body response
-        $httpCode = $this->httpCode($response[0]);
-        if (!empty($httpCode)) {
-            $this->_httpInterface->setHeader('HTTP/1.1 ' . $response[0] . ' ' . $httpCode);
-        }
-
-        // Send the request
+        // Set headers, body response and send
         $this->_httpInterface
+            ->setStatusCode($response[0])
             ->setBody($response[1])
             ->send();
-    }
-
-    protected function httpCode(string|int $code): string|null
-    {
-        switch ($code) {
-            case 200:
-                return 'OK';
-            case 201:
-                return 'Created';
-            case 400:
-                return 'Bad Request';
-            case 401:
-                return 'Unauthorized';
-            case 403:
-                return 'Forbidden';
-            case 404:
-                return 'Not found';
-            case 412:
-                return 'Precondition Failed';
-            case 500:
-                return 'Internal error';
-        }
-        return NULL;
     }
 };

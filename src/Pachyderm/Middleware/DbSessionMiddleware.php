@@ -31,6 +31,13 @@ class DbSessionMiddleware implements MiddlewareInterface
             if (!empty($db)) {
                 $db->rollBack();
             }
+
+            // Throw exception in CLI.
+            if (PHP_SAPI === 'cli') {
+                throw $e;
+            }
+
+            // Return a 500 error in HTTP.
             return $response;
         }
     }
