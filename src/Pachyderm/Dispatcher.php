@@ -1,14 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pachyderm;
 
-use Pachyderm\Middleware\MiddlewareInterface;
+use Pachyderm\Http\HttpHandler;
+use Pachyderm\Http\HttpInterface;
+use Pachyderm\Middleware\MiddlewareManager;
 use Pachyderm\Middleware\MiddlewareManagerInterface;
+use ReflectionFunction;
 
 class Dispatcher
 {
-    protected $_baseURL = '/api';
-    protected $_routes = array(
+    protected string $_baseURL = '/api';
+    protected array $_routes = array(
         'GET' => array(),
         'POST' => array(),
         'PUT' => array(),
@@ -17,15 +22,17 @@ class Dispatcher
         'HEAD' => array()
     );
 
-    protected $_middlewareManager;
+    protected HttpInterface $_httpInterface;
+    protected MiddlewareManagerInterface $_middlewareManager;
 
-    public function __construct($_baseURL, MiddlewareManagerInterface $middlewareManager)
+    public function __construct(string $_baseURL = '/', MiddlewareManagerInterface $middlewareManager = new MiddlewareManager(), HttpInterface $httpInterface = new HttpHandler())
     {
         $this->_baseURL = $_baseURL;
         $this->_middlewareManager = $middlewareManager;
+        $this->_httpInterface = $httpInterface;
     }
 
-    public function registerMiddlewares($middlewares)
+    public function registerMiddlewares(array $middlewares)
     {
         if (is_array($middlewares)) {
             foreach ($middlewares as $m) {
@@ -37,7 +44,7 @@ class Dispatcher
     /**
      * Declare a new GET endpoint.
      */
-    public function get($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
+    public function get(string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = []): Dispatcher
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['GET'][$endpoint] = [
@@ -46,12 +53,13 @@ class Dispatcher
             'localMiddleware' => $localMiddleware,
             'blacklistMiddleware' => $blacklistMiddleware
         ];
+        return $this;
     }
 
     /**
      * Declare a new POST endpoint.
      */
-    public function post($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
+    public function post(string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = []): Dispatcher
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['POST'][$endpoint] = [
@@ -60,12 +68,13 @@ class Dispatcher
             'localMiddleware' => $localMiddleware,
             'blacklistMiddleware' => $blacklistMiddleware
         ];
+        return $this;
     }
 
     /**
      * Declare a new PUT endpoint.
      */
-    public function put($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
+    public function put(string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = []): Dispatcher
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['PUT'][$endpoint] = [
@@ -74,12 +83,13 @@ class Dispatcher
             'localMiddleware' => $localMiddleware,
             'blacklistMiddleware' => $blacklistMiddleware
         ];
+        return $this;
     }
 
     /**
      * Declare a new DELETE endpoint.
      */
-    public function delete($endpoint, \Closure $action, $localMiddleware = [], $blacklistMiddleware = [])
+    public function delete(string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = []): Dispatcher
     {
         $endpoint = $this->_baseURL . $endpoint;
         $this->_routes['DELETE'][$endpoint] = [
@@ -88,22 +98,23 @@ class Dispatcher
             'localMiddleware' => $localMiddleware,
             'blacklistMiddleware' => $blacklistMiddleware
         ];
+        return $this;
     }
 
     /**
      * Dispatch the request:
      * - resolve path,
-     * - resolve parameteters,
+     * - resolve parameters,
      * - match an action,
      * - and execute
      */
-    public function dispatch()
+    public function dispatch(): void
     {
         /**
          * GET SERVER VARIABLES FOR RESOLVING ACTION
          */
-        $method = $_SERVER['REQUEST_METHOD'];
-        $uri = $_SERVER['REQUEST_URI'];
+        $method = $this->_httpInterface->method();
+        $uri = $this->_httpInterface->uri();
 
         // Unrecognized method
         if (empty($this->_routes[$method])) {
@@ -112,10 +123,10 @@ class Dispatcher
         }
 
         /**
-         * BEGIN HANDLER MATHCHING AND ARGUMENT EXTRACTION
+         * BEGIN HANDLER MATCHING AND ARGUMENT EXTRACTION
          */
         $matchedHandler = NULL;
-        $argumentsList = array();
+        $pathParameters = array();
         $end = strpos($uri, '?');
         $path = substr($uri, 0, $end ? $end : strlen($uri));
 
@@ -144,13 +155,13 @@ class Dispatcher
                 /**
                  * Generate the regex for URL matching
                  */
-                $arguments = array();
+                $parameters = array();
                 $matcher = $endpoint;
                 foreach ($params[0] as $param) {
                     $param_name = substr($param, 1, -1);
                     $regexp = '(?P<' . $param_name . '>[^/]+)';
                     $matcher = str_replace($param, $regexp, $matcher);
-                    $arguments[] = $param_name;
+                    $parameters[] = $param_name;
                 }
                 $endpoint_matcher = '@^' . $matcher . '|/?$@';
 
@@ -181,8 +192,8 @@ class Dispatcher
                  * Set action and retrieve the list of values.
                  */
                 $matchedHandler = $handler;
-                foreach ($arguments as $name) {
-                    $argumentsList[$name] = $args[$name];
+                foreach ($parameters as $name) {
+                    $pathParameters[$name] = $args[$name];
                 }
 
                 break;
@@ -197,20 +208,52 @@ class Dispatcher
             };
         }
 
-        return $this->handle($matchedHandler, $argumentsList);
+        // extract any body params for POST, PUT, or DELETE
+        $bodyPayload = $this->_httpInterface->body();
+        $body = json_decode($bodyPayload, true);
+
+        // Handle the request
+        $this->handle($matchedHandler, $pathParameters, $body);
     }
 
 
     /**
      * Set data, execute the action and return the json_encoded value.
      */
-    protected function handle($handler, $arguments = array())
+    protected function handle(array $handler, array $pathParameters = array(), mixed $body = NULL): void
     {
-        // extract any body params for POST, PUT, or DELETE
-        $bodyParams = json_decode(file_get_contents('php://input'), true);
+        $arguments = $pathParameters;
 
-        if (!empty($bodyParams)) {
-            $arguments['data'] = $bodyParams;
+        $bodyParameterName = 'data';
+        $bodyTypeParameter = NULL;
+
+        // Analyze action parameters.
+        $reflection = new ReflectionFunction($handler['action']);
+        $actionParameters = $reflection->getParameters();
+        $paramsLeft = $pathParameters;
+        foreach ($actionParameters as $param) {
+            $name = $param->getName();
+
+            if ($param->hasType()) {
+                $type = $param->getType();
+                if (!$type->isBuiltin()) {
+                    $bodyTypeParameter = $type->getName();
+                    $bodyParameterName = $name;
+                    continue;
+                }
+            }
+
+            if (!isset($paramsLeft[$name])) {
+                throw new \Exception('Parameter ' . $name . ' doesn\'t exists for the action!');
+            }
+            unset($paramsLeft[$name]);
+        }
+
+        // Build the body object if necessary
+        if ($bodyTypeParameter === NULL) {
+            $arguments[$bodyParameterName] = $body;
+        } else {
+            $arguments[$bodyParameterName] = new $bodyTypeParameter($body);
         }
 
         // ensure handler object is complete
@@ -221,7 +264,6 @@ class Dispatcher
         if (!array_key_exists('blacklistMiddleware', $handler)) {
             $handler['blacklistMiddleware'] = [];
         }
-
 
         // empty default response
         $response = [200, NULL];
@@ -243,13 +285,16 @@ class Dispatcher
         // set headers and echo body response
         $httpCode = $this->httpCode($response[0]);
         if (!empty($httpCode)) {
-            header('HTTP/1.1 ' . $response[0] . ' ' . $httpCode);
+            $this->_httpInterface->setHeader('HTTP/1.1 ' . $response[0] . ' ' . $httpCode);
         }
-        echo $response[1];
-        return true;
+
+        // Send the request
+        $this->_httpInterface
+            ->setBody($response[1])
+            ->send();
     }
 
-    protected function httpCode($code)
+    protected function httpCode(string|int $code): string|null
     {
         switch ($code) {
             case 200:
