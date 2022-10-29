@@ -2,7 +2,7 @@
 
 namespace Pachyderm\Utils;
 
-class IterableObjectSet implements \Countable, \Iterator, \ArrayAccess
+class IterableObjectSet implements \Countable, \Iterator, \ArrayAccess, \JsonSerializable
 {
     protected array $_data = array();
 
@@ -111,5 +111,13 @@ class IterableObjectSet implements \Countable, \Iterator, \ArrayAccess
     public function offsetGet($key): mixed
     {
         return $this->_data[$key];
+    }
+
+    /**
+     * Prepare serialization
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->_data;
     }
 }
