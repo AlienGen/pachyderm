@@ -243,6 +243,11 @@ class Dispatcher
                 }
             }
 
+            // If the body has no type, only "data" is allowed.
+            if ($bodyParameterName === $name) {
+                continue;
+            }
+
             if (!isset($paramsLeft[$name])) {
                 throw new \Exception('Parameter ' . $name . ' doesn\'t exists for the action!');
             }
