@@ -2,33 +2,57 @@
 
 namespace Pachyderm;
 
+use Pachyderm\Exceptions\ConfigurationException;
+
 class DuplicateException extends \Exception {};
 
 class Db
 {
-    protected static $_instance = NULL;
+    protected static array $_instance = [];
     protected $_mysql = NULL;
 
     protected $_last_query = '';
 
-    public function __construct()
+    public function __construct(array $parameters = NULL)
     {
-        $this->_mysql = new \MySQLi(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-    }
-
-    public static function getInstance() {
-        if(!self::$_instance) {
-            self::$_instance = new Db();
+        if($parameters === NULL) {
+            $parameters = [
+                'host' => DB_HOST,
+                'username' => DB_USER,
+                'password' => DB_PASSWORD,
+                'database' => DB_NAME
+            ];
         }
-        return self::$_instance;
+
+        $this->_mysql = new \MySQLi($parameters['host'], $parameters['username'], $parameters['password'], $parameters['database']);
     }
 
-    public static function query($query) {
+    public static function getInstance(string $config = NULL): Db {
+        // If not specific configuration is provided, set the default "database" configuration.
+        if($config === NULL) {
+            $config = 'database';
+        }
+
+        if(empty(self::$_instance[$config])) {
+            $parameters = NULL;
+            try {
+                $parameters = Config::get($config);
+            } catch(ConfigurationException $e) {
+                // Fallback to the "environment" defined configuration.
+                $parameters = NULL;
+            }
+            self::$_instance[$config] = new Db($parameters);
+        }
+
+        return self::$_instance[$config];
+    }
+
+    public static function query(string $query) {
         $db = self::getInstance();
         return $db->_query($query);
     }
 
-    public static function escape($field) {
+    public static function escape(string $field = NULL): string|null {
         if(is_null($field)) {
             return null;
         }
@@ -40,7 +64,7 @@ class Db
         return $this->_mysql;
     }
 
-    public function _query($query) {
+    public function _query(string $query) {
         $this->_last_query = $query;
         $result = $this->_mysql->query($query);
 
@@ -48,7 +72,7 @@ class Db
         return $result;
     }
 
-    public function getInsertedId()
+    public function getInsertedId(): int|null
     {
         if($id = $this->_mysql->insert_id)
         {
@@ -57,12 +81,12 @@ class Db
         return FALSE;
     }
 
-    public function getAffectedRows()
+    public function getAffectedRows(): int
     {
         return $this->_mysql->affected_rows;
     }
 
-    protected function checkDbError()
+    protected function checkDbError(): void
     {
         if(!empty($this->_mysql->error))
         {
@@ -87,7 +111,6 @@ class Db
             }
             throw new \Exception('SQL Warning: ' . $message . ' Last Query:(' . $this->_last_query . ')');
         }
-        return TRUE;
     }
 
     /**
@@ -98,7 +121,7 @@ class Db
      * @param $limit integer Limit
      * @return array Return array of objects
      */
-    public static function findAll($table, $where = NULL, $order = NULL, $offset = 0, $limit = 50) {
+    public static function findAll(string $table, array $where = NULL, array $order = NULL, int $offset = 0, int $limit = 50): array {
         $sql = 'SELECT * FROM `' . $table . '`';
 
         if(!empty($where)) {
@@ -131,7 +154,7 @@ class Db
      * @param $value Value
      * @return false|array Return element if success, false otherwise
      */
-    public static function findOne($table, $key, $value) {
+    public static function findOne(string $table, string|array $key, string|array $value): array {
         $query = 'SELECT * FROM `' . $table . '` WHERE ';
         if (!is_array($key) && !is_array($value)) {
             $query .= $key . '="' . Db::escape($value) . '"';
@@ -154,7 +177,7 @@ class Db
      * @param array $payload Data to insert
      * @return false|integer Return new inserted id if success, false otherwise
      */
-    public static function insert($table, array $content) {
+    public static function insert(string $table, array $content): int|false {
         $sql = 'INSERT INTO ' . $table;
         if(empty($content)) {
             $sql .= ' VALUES ()';
@@ -172,7 +195,7 @@ class Db
      * @param array $content Data to insert
      * @param $where String Where condition
      */
-    public static function update($table, array $content, $where) {
+    public static function update(string $table, array $content, array $where = NULL): void {
         $sql = 'UPDATE '.$table.' SET ';
 
         $sql .= self::formatColumns($content);
@@ -184,7 +207,7 @@ class Db
         self::query($sql);
     }
 
-    private static function formatColumns(array $columns) {
+    private static function formatColumns(array $columns): string {
         $cols = array();
         foreach ($columns as $column => $value) {
             if($value === NULL) {
@@ -210,7 +233,7 @@ class Db
      * @param $value Value
      * @return false|true Return true if success, false otherwise
      */
-    public static function delete($table, $key, $value) {
+    public static function delete(string $table, string|array $key, string|array $value): bool {
         if (!is_array($key) && !is_array($value)) {
             return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
         }
@@ -226,7 +249,7 @@ class Db
         return self::query($query);
     }
 
-    private static function parseWhere($array) {
+    private static function parseWhere(array $array): string {
         $op = array_key_first($array);
         $values = $array[$op];
         $arraySize = count($values);

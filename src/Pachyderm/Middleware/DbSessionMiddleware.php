@@ -19,7 +19,7 @@ class DbSessionMiddleware implements MiddlewareInterface
 
             $response = $next();
 
-            if ($response[0] < 300) {
+            if ($response[0] < 400) {
                 $db->commit();
             } else {
                 $db->rollBack();
@@ -27,7 +27,6 @@ class DbSessionMiddleware implements MiddlewareInterface
 
             return $response;
         } catch (\Exception $e) {
-            $response = [500, ['error' => $e->getMessage()]];
             if (!empty($db)) {
                 $db->rollBack();
             }
@@ -38,7 +37,7 @@ class DbSessionMiddleware implements MiddlewareInterface
             }
 
             // Return a 500 error in HTTP.
-            return $response;
+            return [500, ['error' => $e->getMessage()]];
         }
     }
 }

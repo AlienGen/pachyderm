@@ -2,6 +2,6 @@
 
 namespace Pachyderm\Exceptions;
 
-class MiddlewareException extends Exception
+class MiddlewareException extends \Exception
 {
 }
