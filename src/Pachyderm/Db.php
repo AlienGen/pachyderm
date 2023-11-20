@@ -211,16 +211,16 @@ class Db
         $cols = array();
         foreach ($columns as $column => $value) {
             if($value === NULL) {
-                $cols[] = $column.' = NULL';
+                $cols[] = '`' . $column . '` = NULL';
             }
             elseif ($value === true) {
-                $cols[] = $column.' = 1';
+                $cols[] = '`' . $column . '` = 1';
             }
             elseif ($value === false) {
-                $cols[] = $column.' = 0';
+                $cols[] = '`' . $column . '` = 0';
             }
             else
-                $cols[] = $column.' = "'.self::escape($value).'"';
+                $cols[] = '`' . $column . '` = "'.self::escape($value).'"';
         }
         $sql = join(',', $cols);
 
