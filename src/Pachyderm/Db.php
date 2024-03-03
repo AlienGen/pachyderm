@@ -2,9 +2,14 @@
 
 namespace Pachyderm;
 
+use Closure;
 use Pachyderm\Exceptions\ConfigurationException;
 
 class DuplicateException extends \Exception {};
+
+abstract class DbMiddleware {
+    public abstract function handle(string $query, Closure $next): mixed;
+}
 
 class Db
 {
@@ -12,6 +17,8 @@ class Db
     protected $_mysql = NULL;
 
     protected $_last_query = '';
+
+    protected $_middlewares = [];
 
     public function __construct(array $parameters = NULL)
     {
@@ -64,12 +71,29 @@ class Db
         return $this->_mysql;
     }
 
-    public function _query(string $query) {
-        $this->_last_query = $query;
-        $result = $this->_mysql->query($query);
+    public function addMiddleware(DbMiddleware $middleware): void {
 
-        $this->checkDbError();
-        return $result;
+        $this->_middlewares[] = $middleware;
+    }
+
+    public function _query(string $query) {
+
+        $middlewares = array_reverse($this->_middlewares);
+
+        $next = function() use($this, $query) {
+            $this->_last_query = $query;
+            $result = $this->_mysql->query($query);
+            $this->checkDbError();
+            return $result;
+        };
+
+        foreach($middlewares as $middleware) {
+            $next = function() use ($middleware, $query, $next) {
+                return $middleware->handle($query, $next);
+            };
+        }
+
+        return $next();
     }
 
     public function getInsertedId(): int|null

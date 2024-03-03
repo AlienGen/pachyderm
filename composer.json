@@ -3,7 +3,7 @@
         "description": "A micro PHP framework for APIs",
         "type": "library",
         "require": {
-                "php": ">=5.6.0"
+                "php": ">=8"
         },
         "license": "MIT",
         "authors": [
@@ -12,7 +12,6 @@
                         "email": "mermetbt@gmail.com"
                 }
         ],
-        "minimum-stability": "dev",
         "autoload": {
                 "psr-0": {
                         "Pachyderm": "src/"
