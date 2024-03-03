@@ -80,10 +80,11 @@ class Db
 
         $middlewares = array_reverse($this->_middlewares);
 
-        $next = function() use($this, $query) {
-            $this->_last_query = $query;
-            $result = $this->_mysql->query($query);
-            $this->checkDbError();
+        $db = $this;
+        $next = function() use($db, $query) {
+            $db->_last_query = $query;
+            $result = $db->_mysql->query($query);
+            $db->checkDbError();
             return $result;
         };
 
