@@ -70,7 +70,7 @@ class IterableObjectSet implements \Countable, \Iterator, \ArrayAccess, \JsonSer
      */
     public function valid(): bool
     {
-        return current($this->_data) != NULL;
+        return current($this->_data) != null;
     }
 
     /**

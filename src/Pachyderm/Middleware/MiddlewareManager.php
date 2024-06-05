@@ -10,11 +10,7 @@ class MiddlewareManager implements MiddlewareManagerInterface
 {
     private $middlewares = [];
 
-    public function __construct()
-    {
-    }
-
-    private function mergeMiddleware($additional, $blacklist): array
+    private function mergeMiddleware(array $additional, array $blacklist): array
     {
         // remove blacklist
         $middlewares = $this->middlewares;
@@ -35,16 +31,20 @@ class MiddlewareManager implements MiddlewareManagerInterface
         return $middlewares;
     }
 
-    public function executeChain(\Closure $action, $additional = [], $blacklist = [])
+    public function executeChain(\Closure $action, array $handler): array
     {
+        $additional = $handler['localMiddleware'] ?? [];
+        $blacklist = $handler['blacklistMiddleware'] ?? [];
+
         $middlewares = array_reverse(
             $this->mergeMiddleware($additional, $blacklist)
         );
         $next = $action;
 
         foreach ($middlewares as $m) {
-            $next = function () use ($m, $next) {
-                return $m->handle($next);
+            $next = function () use ($m, $next, $handler) {
+                $m->handler = $handler;
+                return $m->handle($next, $handler);
             };
         }
 

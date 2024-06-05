@@ -9,7 +9,9 @@ interface HttpInterface
      */
     public function method(): string;
     public function uri(): string;
+    public function path(): string;
     public function body(): string|null;
+    public function bodyParams(): array|null;
 
 
     /**

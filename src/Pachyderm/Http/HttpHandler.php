@@ -18,9 +18,21 @@ class HttpHandler implements HttpInterface
         return $_SERVER['REQUEST_URI'];
     }
 
+    public function path(): string
+    {
+        $uri = $this->uri();
+        $end = strpos($uri, '?');
+        return substr($uri, 0, $end ? $end : strlen($uri));
+    }
+
     public function body(): string | null
     {
         return file_get_contents('php://input');
+    }
+
+    public function bodyParams(): array|null
+    {
+        return json_decode($this->body(), true);
     }
 
     public function setStatusCode(int $statusCode): HttpInterface

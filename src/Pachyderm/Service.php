@@ -3,6 +3,7 @@
 namespace Pachyderm;
 
 use Closure;
+use Pachyderm\Exceptions\ServiceException;
 
 class Service {
     private static array $_services;
@@ -11,7 +12,7 @@ class Service {
     public static function get(string $name): mixed {
         if(!isset(self::$_instances[$name])) {
             if(empty(self::$_services[$name])) {
-                throw new \Exception('Service "' . $name . '" not declared!');
+                throw new ServiceException('Service "' . $name . '" not declared!');
             }
 
             $service = self::$_services[$name];

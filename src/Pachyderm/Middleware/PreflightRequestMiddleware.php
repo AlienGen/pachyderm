@@ -10,7 +10,6 @@ class PreflightRequestMiddleware implements MiddlewareInterface{
     if($method == 'OPTIONS') {
         return [200, array('options' => 'OK')];
     }
-    $response = $next();
-    return $response;
+    return $next();
   }
 }

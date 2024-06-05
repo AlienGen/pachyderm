@@ -2,14 +2,11 @@
 
 namespace Pachyderm\Middleware;
 
+use Pachyderm\Exceptions\BodyContentException;
 use Pachyderm\Middleware\MiddlewareInterface;
 
 class JSONEncoderMiddleware implements MiddlewareInterface
 {
-    public function __construct()
-    {
-    }
-
     public function handle(\Closure $next)
     {
         $response = $next();
@@ -29,7 +26,7 @@ class JSONEncoderMiddleware implements MiddlewareInterface
 
         $response[1] = json_encode($response[1]);
         if (empty($response[1])) {
-            throw new \Exception('Unable to serialize the object!');
+            throw new BodyContentException('Unable to serialize the object!');
         }
         return $response;
     }

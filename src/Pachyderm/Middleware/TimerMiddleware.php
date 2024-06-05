@@ -5,7 +5,6 @@ namespace Pachyderm\Middleware;
 use Pachyderm\Middleware\MiddlewareInterface;
 
 class TimerMiddleware implements MiddlewareInterface {
-  public function __construct() {}
 
   public function handle(\Closure $next) {
     $start = microtime(true);

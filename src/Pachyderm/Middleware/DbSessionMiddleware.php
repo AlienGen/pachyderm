@@ -7,10 +7,6 @@ use Pachyderm\Db;
 
 class DbSessionMiddleware implements MiddlewareInterface
 {
-    public function __construct()
-    {
-    }
-
     public function handle(\Closure $next)
     {
         try {
