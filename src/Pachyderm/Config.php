@@ -4,6 +4,13 @@ namespace Pachyderm;
 
 use Pachyderm\Exceptions\ConfigurationException;
 
+/**
+ * Class Config
+ *
+ * This class provides static methods to set and retrieve configuration settings.
+ * It stores configurations in a static array and throws an exception if a requested
+ * configuration is not set.
+ */
 class Config {
     public static $configurations = [];
 

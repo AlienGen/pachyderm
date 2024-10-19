@@ -11,13 +11,24 @@ use Pachyderm\Middleware\DbSessionMiddleware;
 use Pachyderm\Middleware\SessionMiddleware;
 use Pachyderm\Middleware\SessionAuthMiddleware;
 use Pachyderm\Middleware\JSONEncoderMiddleware;
+use Pachyderm\Exchange\Response;
+use Pachyderm\Service;
+use Pachyderm\Db;
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASSWORD', '12345678');
-define('DB_NAME', 'pachyderm');
+// Register the database service
+Service::set('db', function() {
+    return new Db([
+        'host' => 'localhost',
+        'username' => 'root',
+        'password' => '12345678',
+        'database' => 'pachyderm'
+    ]);
+});
 
-$dispatcher = new Dispatcher('/api',  new MiddlewareManager());
+// Initialize the dispatcher with the base API path and middleware manager
+$dispatcher = new Dispatcher('/api', new MiddlewareManager());
+
+// Register global middlewares
 $dispatcher->registerMiddlewares([
     JSONEncoderMiddleware::class,
     PreflightRequestMiddleware::class,
@@ -32,8 +43,10 @@ $dispatcher->registerMiddlewares([
  * - Blacklists the Auth middleware registered globally above
  */
 $dispatcher->get('/login', function() {
-    $_SESSION['PACHYDERM_USER'] = [ 'name' => 'Alan Turing', 'id' => 0];
-    return [200, ['success' => true]];
+    // Set a session variable for the user
+    $_SESSION['PACHYDERM_USER'] = ['name' => 'Alan Turing', 'id' => 0];
+    // Return a success response using the Response class
+    return Response::success(['success' => true]);
 }, [], [SessionAuthMiddleware::class]);
 
 /**
@@ -41,7 +54,9 @@ $dispatcher->get('/login', function() {
  * - All middleware is included
  */
 $dispatcher->get('/protected', function() {
-    return [200, ['success' => true]];
+    // Return a success response using the Response class
+    return Response::success(['success' => true]);
 }, [], []);
 
+// Dispatch the request
 $dispatcher->dispatch();

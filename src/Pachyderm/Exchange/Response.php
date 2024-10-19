@@ -1,0 +1,197 @@
+<?php
+
+namespace Pachyderm\Exchange;
+
+/**
+ * Class Response
+ *
+ * This class represents an HTTP response, implementing the ArrayAccess interface
+ * for retro-compatibility with middleware. It provides methods to set and retrieve
+ * HTTP status codes, headers, and body content. Additionally, it includes static
+ * methods for common HTTP response scenarios.
+ */
+class Response implements \ArrayAccess
+{
+    private $statusCode; // HTTP status code
+    private $headers;    // Array of HTTP headers
+    private $body;       // Response body content
+
+    /**
+     * Constructor to initialize the response with a status code, body, and headers.
+     *
+     * @param int $statusCode HTTP status code, default is 200.
+     * @param mixed $body Response body content.
+     * @param array $headers Array of HTTP headers.
+     */
+    public function __construct($statusCode = 200, mixed $body = null, array $headers = [])
+    {
+        $this->statusCode = $statusCode;
+        $this->headers = $headers;
+        $this->body = $body;
+    }
+
+    /**
+     * Set a header value.
+     *
+     * @param string $header Header name.
+     * @param string $value Header value.
+     * @return $this
+     */
+    public function header($header, $value) {
+        $this->headers[$header] = $value;
+        return $this;
+    }
+
+    /**
+     * Get the HTTP status code.
+     *
+     * @return int
+     */
+    public function statusCode(): int {
+        return $this->statusCode;
+    }
+
+    /**
+     * Get all headers.
+     *
+     * @return array
+     */
+    public function headers(): array {
+        return $this->headers;
+    }
+
+    /**
+     * Get the response body.
+     *
+     * @return mixed
+     */
+    public function body(): mixed {
+        return $this->body;
+    }
+
+    /**
+     * Method for retro-compatibility with the array access interface inside middleware.
+     *
+     * @param int $offset
+     * @return boolean
+     */
+    public function offsetExists($offset): bool
+    {
+        return $offset == 0 || $offset == 1;
+    }
+
+    /**
+     * Method for retro-compatibility with the array access interface inside middleware.
+     *
+     * @param int $offset
+     * @return mixed
+     */
+    public function offsetGet($offset): mixed
+    {
+        if($offset == 0) {
+            return $this->statusCode;
+        }
+
+        if($offset == 1) {
+            return $this->body;
+        }
+
+        return null;
+    }
+
+    /**
+     * Method for retro-compatibility with the array access interface inside middleware.
+     *
+     * @param int $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        if($offset == 0) {
+            $this->statusCode = $value;
+        }
+
+        if($offset == 1) {
+            $this->body = $value;
+        }
+    }
+
+    /**
+     * Method for retro-compatibility with the array access interface inside middleware.
+     *
+     * @param int $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        if($offset == 0) {
+            $this->statusCode = null;
+        }
+
+        if($offset == 1) {
+            $this->body = null;
+        }
+    }
+
+    /**
+     * Create a successful response (200 OK).
+     *
+     * @param mixed $body
+     * @return Response
+     */
+    public static function success(mixed $body = null) {
+        return new Response(200, $body, []);
+    }
+
+    /**
+     * Create a response for resource creation (201 Created).
+     *
+     * @param mixed $body
+     * @return Response
+     */
+    public static function created(mixed $body = null) {
+        return new Response(201, $body, []);
+    }
+
+    /**
+     * Create a response for not found (404 Not Found).
+     *
+     * @return Response
+     */
+    public static function notFound() {
+        return new Response(404);
+    }
+
+    /**
+     * Create a bad request response (400 Bad Request).
+     *
+     * @param mixed $body
+     * @return Response
+     */
+    public static function badRequest(mixed $body = null) {
+        return new Response(400, $body, []);
+    }
+
+    /**
+     * Create an error response (500 Internal Server Error).
+     *
+     * @param mixed $body
+     * @return Response
+     */
+    public static function error(mixed $body = null) {
+        return new Response(500, $body, []);
+    }
+
+    /**
+     * Check if a response has an error status code (>= 400).
+     *
+     * @param Response|array $response
+     * @return bool
+     */
+    public static function hasError(Response|array $response): bool {
+        if($response instanceof Response) {
+            return $response->statusCode() >= 400;
+        }
+
+        return $response[0] >= 400;
+    }
+}

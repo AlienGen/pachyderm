@@ -1,6 +1,6 @@
 {
         "name": "aliengen/pachyderm",
-        "description": "A micro PHP framework for APIs",
+        "description": "A Micro PHP framework for APIs",
         "type": "library",
         "require": {
                 "php": ">=8"
