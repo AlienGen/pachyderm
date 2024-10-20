@@ -2,6 +2,32 @@
 
 Pachyderm is a lightweight PHP framework designed for building APIs with ease. It provides a simple and flexible way to manage routes, middleware, and HTTP requests.
 
+## Table of Contents
+
+- [Introduction](#introduction)
+  - [Motivation](#motivation)
+  - [Goals](#goals)
+  - [Features](#features)
+- [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Simple Example](#simple-example)
+    - [Setting Up a Controller](#setting-up-a-controller)
+- [Middleware](#middleware)
+  - [Registering Global Middleware](#registering-global-middleware)
+  - [Adding and Removing Middleware for Specific Routes](#adding-and-removing-middleware-for-specific-routes)
+- [Routes](#routes)
+  - [Supported HTTP Methods](#supported-http-methods)
+- [Services](#services)
+  - [Registering a Service](#registering-a-service)
+  - [Using a Registered Service](#using-a-registered-service)
+  - [Direct Instantiation of Db](#direct-instantiation-of-db)
+- [Exception Handling](#exception-handling)
+  - [Using ExceptionHandlerMiddleware](#using-exceptionhandlermiddleware)
+  - [Existing Exceptions](#existing-exceptions)
+- [Additional Information](#additional-information)
+- [License](#license)
+
 ## Introduction
 
 ### Motivation
