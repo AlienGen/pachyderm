@@ -20,8 +20,10 @@ use Pachyderm\Validation\Validator\NumericValidator;
 use Pachyderm\Validation\Validator\ObjectValidator;
 use Pachyderm\Validation\Validator\RegexValidator;
 use Pachyderm\Validation\Validator\RequiredValidator;
+use Pachyderm\Validation\Validator\StringValidator;
 use Pachyderm\Validation\Validator\TimeValidator;
 use Pachyderm\Validation\Validator\TimezoneValidator;
+use Exception;
 
 class Validator
 {
@@ -42,6 +44,12 @@ class Validator
             $rule = explode(':', $rule);
             $validator = $rule[0];
             $options = isset($rule[1]) ? explode(',', $rule[1]) : [];
+
+            // Check if the validator exists
+            if (!isset($this->validators[$validator])) {
+                throw new Exception("Validator '{$validator}' not found.");
+            }
+
             if (!$this->validators[$validator]->validate($value, $options)) {
                 $errors[] = $this->validators[$validator]->getErrorMessage($options);
             }
@@ -62,6 +70,7 @@ class Validator
                 'in' => new InValidator(),
                 'not_in' => new NotInValidator(),
                 'regex' => new RegexValidator(),
+                'string' => new StringValidator(),
                 'alpha' => new AlphaValidator(),
                 'alpha_num' => new AlphaNumValidator(),
                 'numeric' => new NumericValidator(),
