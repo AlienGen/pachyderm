@@ -10,7 +10,7 @@ namespace Pachyderm\Exchange;
  * HTTP status codes, headers, and body content. Additionally, it includes static
  * methods for common HTTP response scenarios.
  */
-class Response implements \ArrayAccess
+class Response implements \Countable, \ArrayAccess
 {
     private $statusCode; // HTTP status code
     private $headers;    // Array of HTTP headers
@@ -130,6 +130,14 @@ class Response implements \ArrayAccess
         if($offset == 1) {
             $this->body = null;
         }
+    }
+
+    /**
+     * Method for retro-compatibility with the array access interface inside middleware.
+     */
+    public function count(): int
+    {
+        return 2;
     }
 
     /**

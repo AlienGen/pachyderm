@@ -3,6 +3,7 @@
 namespace Pachyderm\Middleware;
 
 use Pachyderm\Exceptions\MiddlewareException;
+use Pachyderm\Exchange\Response;
 use Pachyderm\Middleware\MiddlewareInterface;
 use Pachyderm\Middleware\MiddlewareManagerInterface;
 
@@ -53,7 +54,7 @@ class MiddlewareManager implements MiddlewareManagerInterface
      * @param array $handler Contains local and blacklist middleware.
      * @return array The result of the middleware chain execution.
      */
-    public function executeChain(\Closure $action, array $handler): array
+    public function executeChain(\Closure $action, array $handler): array|Response
     {
         $additional = $handler['localMiddleware'] ?? [];
         $blacklist = $handler['blacklistMiddleware'] ?? [];
