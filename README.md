@@ -2,6 +2,32 @@
 
 Pachyderm is a lightweight PHP framework designed for building APIs with ease. It provides a simple and flexible way to manage routes, middleware, and HTTP requests.
 
+## Introduction
+
+### Motivation
+
+Pachyderm began as an internal training project at AlienGen, aimed at deepening our understanding of framework fundamentals and showcasing PHP's capabilities. As we developed numerous microservices, we recognized the need for a more robust solution than single-file scripts for main endpoints. Pachyderm emerged as a micro framework designed to be both simple and user-friendly, offering a lightweight alternative to larger frameworks like Laravel or Symfony.
+
+We adhere to the KISS (Keep It Simple, Stupid) principle, ensuring our code remains straightforward and comprehensible. The framework's components are extensible, allowing for customization to meet specific needs. By minimizing external dependencies, Pachyderm remains compact and tailored.
+
+Our development approach aligns with the 12-factor app principles, ensuring the framework is built to support these best practices.
+
+### Goals
+
+- **Developer Experience**: Prioritize ease of use, enabling developers to concentrate on business logic with minimal code.
+- **Simplicity**: Maintain clear and understandable code for developers.
+- **Extensibility**: Allow customization to suit individual project requirements.
+- **Lightweight**: Core framework avoids external dependencies, though projects can incorporate any necessary libraries.
+
+### Features
+
+- Routing
+- Service Container
+- Validation
+- Middleware
+- Exception Handling
+- Response Management
+
 ## Getting Started
 
 ### Installation
@@ -13,6 +39,23 @@ composer require aliengen/pachyderm
 ```
 
 ### Usage
+
+#### Simple Example
+
+```php
+use Pachyderm\Dispatcher;
+use Pachyderm\Exchange\Response;
+
+$dispatcher = new Dispatcher();
+
+// Declare a new GET endpoint
+$dispatcher->get('/my_endpoint', function() {
+    return Response::success(['success' => true]);
+});
+
+// Dispatch the request
+$dispatcher->dispatch();
+```
 
 #### Setting Up a Controller
 
@@ -29,6 +72,9 @@ use Pachyderm\Middleware\SessionAuthMiddleware;
 use Pachyderm\Middleware\JSONEncoderMiddleware;
 use Pachyderm\Exchange\Response;
 
+/*
+ * Instantiate the dispatcher with a base URL and middleware manager.
+ */
 $dispatcher = new Dispatcher('/api',  new MiddlewareManager());
 
 /* Declaration of the middleware. */
