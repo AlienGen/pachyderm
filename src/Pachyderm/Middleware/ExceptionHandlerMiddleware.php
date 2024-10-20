@@ -3,6 +3,7 @@
 namespace Pachyderm\Middleware;
 
 use Pachyderm\Exceptions\AbstractHTTPException;
+use Pachyderm\Exchange\Response;
 use Pachyderm\Middleware\MiddlewareInterface;
 
 /**
@@ -26,7 +27,7 @@ class ExceptionHandlerMiddleware implements MiddlewareInterface
       return $next();
     } catch (AbstractHTTPException $e) {
       // Catch the exception and return a structured error response.
-      return [$e->getCode(), ['success' => false, 'message' => $e->getMessage(), 'errors' => $e->getErrors()]];
+      return new Response($e->getCode(), ['success' => false, 'message' => $e->getMessage(), 'errors' => $e->getErrors()]);
     }
   }
 }

@@ -81,7 +81,7 @@ abstract class RequestValidator extends Request
 
         // If there are any validation errors, throw a ValidationException
         if (count($errors) > 0) {
-            throw new ValidationException($errors);
+            throw new ValidationException('Validation failed', $errors);
         }
     }
 

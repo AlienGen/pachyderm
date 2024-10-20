@@ -38,6 +38,12 @@ class Validator
     public function validateValue(string $rules, mixed $value): array
     {
         $rules = explode('|', $rules);
+
+        // If the value is null and 'required' is not in the rules, return no errors
+        if ($value === null && !in_array('required', $rules)) {
+            return [];
+        }
+
         $errors = [];
 
         foreach ($rules as $rule) {

@@ -214,17 +214,18 @@ class Dispatcher
             unset($paramsLeft[$name]);
         }
 
-        // Build the body object if necessary
-        if ($bodyTypeParameter === null) {
-            $arguments[$bodyParameterName] = $body;
-        } else {
-            $arguments[$bodyParameterName] = new $bodyTypeParameter($body);
-        }
-
         // wrap action in a closure
-        $requestClosure = function () use ($handler, $arguments) {
+        $requestClosure = function () use ($handler, $bodyTypeParameter, $bodyParameterName, $body, $arguments) {
+            // Build the body object if necessary
+            if ($bodyTypeParameter === null) {
+                $arguments[$bodyParameterName] = $body;
+            } else {
+                $arguments[$bodyParameterName] = new $bodyTypeParameter($body);
+            }
+
             return call_user_func_array($handler['action'], array_values($arguments));
         };
+
 
         // ask middleware manager to execute middleware chain before the request
         $response = $this
