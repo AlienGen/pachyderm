@@ -115,13 +115,17 @@ abstract class RequestValidator extends Request
     {
         $keys = explode('.', $key);
         $current = &$this;
+        $lastKey = array_pop($keys);
+
         foreach ($keys as $k) {
-            if (!isset($current->$k)) {
-                $current->$k = new \stdClass();
+            if (!isset($current->$k) || !is_object($current->$k)) {
+                $current->$k = new IterableObjectSet();
             }
             $current = &$current->$k;
         }
-        $current = $value;
+
+        // Assign the value to the final key
+        $current->$lastKey = $value;
     }
 
     /**
