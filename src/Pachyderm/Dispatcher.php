@@ -238,7 +238,7 @@ class Dispatcher
         $this->_httpInterface
             ->setStatusCode($response[0])
             ->setBody($response[1])
-            ->addHeaders($response[2])
+            ->addHeaders($response[2] ?? [])
             ->send();
     }
 
