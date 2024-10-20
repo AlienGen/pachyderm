@@ -41,6 +41,13 @@ class HttpHandler implements HttpInterface
         return $this;
     }
 
+
+    public function addHeaders(array $headers): HttpInterface
+    {
+        $this->_headers = array_merge($this->_headers, $headers);
+        return $this;
+    }
+
     public function setHeader(string $header, string $value): HttpInterface
     {
         $this->_headers[$header] = $value;

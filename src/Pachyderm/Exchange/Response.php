@@ -77,7 +77,7 @@ class Response implements \Countable, \ArrayAccess
      */
     public function offsetExists($offset): bool
     {
-        return $offset == 0 || $offset == 1;
+        return $offset == 0 || $offset == 1 || $offset == 2;
     }
 
     /**
@@ -94,6 +94,10 @@ class Response implements \Countable, \ArrayAccess
 
         if($offset == 1) {
             return $this->body;
+        }
+
+        if($offset == 2) {
+            return $this->headers;
         }
 
         return null;
@@ -114,6 +118,10 @@ class Response implements \Countable, \ArrayAccess
         if($offset == 1) {
             $this->body = $value;
         }
+
+        if($offset == 2) {
+            $this->headers = $value;
+        }
     }
 
     /**
@@ -130,6 +138,10 @@ class Response implements \Countable, \ArrayAccess
         if($offset == 1) {
             $this->body = null;
         }
+
+        if($offset == 2) {
+            $this->headers = [];
+        }
     }
 
     /**
@@ -137,7 +149,7 @@ class Response implements \Countable, \ArrayAccess
      */
     public function count(): int
     {
-        return 2;
+        return 3;
     }
 
     /**
@@ -161,12 +173,14 @@ class Response implements \Countable, \ArrayAccess
     }
 
     /**
-     * Create a response for not found (404 Not Found).
+     * Create a redirect response (302 Found).
      *
+     * @param string $url
      * @return Response
      */
-    public static function notFound() {
-        return new Response(404);
+    public static function redirect(string $url = null) {
+        $headers = $url ? ['Location' => $url] : [];
+        return new Response(302, null, $headers);
     }
 
     /**
@@ -177,6 +191,24 @@ class Response implements \Countable, \ArrayAccess
      */
     public static function badRequest(mixed $body = null) {
         return new Response(400, $body, []);
+    }
+
+    /**
+     * Create a response for unauthorized (401 Unauthorized).
+     *
+     * @return Response
+     */
+    public static function unauthorized(mixed $body = null) {
+        return new Response(401, $body);
+    }
+
+    /**
+     * Create a response for not found (404 Not Found).
+     *
+     * @return Response
+     */
+    public static function notFound(mixed $body = null) {
+        return new Response(404, $body);
     }
 
     /**
