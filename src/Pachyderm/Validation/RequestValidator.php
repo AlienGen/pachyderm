@@ -56,7 +56,8 @@ abstract class RequestValidator extends Request
         $errors = [];
         foreach ($fieldsRules as $field => $rules) {
             // Handle nested fields
-            $parentValue = $this->getNestedValue($body, $this->getParentKey($field));
+            $parentKey = $this->getParentKey($field);
+            $parentValue = $parentKey !== '' ? $this->getNestedValue($body, $parentKey) : null;
 
             // Skip validation for nested fields if the parent does not exist
             if ($parentValue === null && strpos($field, '.') !== false) {
