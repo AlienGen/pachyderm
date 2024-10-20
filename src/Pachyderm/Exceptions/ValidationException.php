@@ -4,7 +4,7 @@ namespace Pachyderm\Exceptions;
 
 class ValidationException extends AbstractHTTPException
 {
-    protected int $code = 400;
+    protected $code = 400;
     public array $errors;
 
     public function __construct(array $errors)
