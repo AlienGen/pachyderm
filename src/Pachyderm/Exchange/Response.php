@@ -203,6 +203,16 @@ class Response implements \Countable, \ArrayAccess
     }
 
     /**
+     * Create a forbidden response (403 Forbidden).
+     *
+     * @param mixed $body
+     * @return Response
+     */
+    public static function forbidden(mixed $body = null) {
+        return new Response(403, $body);
+    }
+
+    /**
      * Create a response for not found (404 Not Found).
      *
      * @return Response
