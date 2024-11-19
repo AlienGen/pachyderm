@@ -20,7 +20,7 @@ class Db
 
     protected $_middlewares = [];
 
-    public function __construct(array $parameters = NULL)
+    public function __construct(iterable $parameters = NULL)
     {
         if($parameters === NULL) {
             $parameters = [
@@ -144,9 +144,9 @@ class Db
      * @param $order Array Order by
      * @param $offset integer Offset
      * @param $limit integer Limit
-     * @return array Return array of objects
+     * @return iterable Return array of objects
      */
-    public static function findAll(string $table, array $where = NULL, array $order = NULL, int $offset = 0, int $limit = 50): array {
+    public static function findAll(string $table, iterable $where = NULL, iterable $order = NULL, int $offset = 0, int $limit = 50): iterable {
         $sql = 'SELECT * FROM `' . $table . '`';
 
         if(!empty($where)) {
@@ -177,9 +177,9 @@ class Db
      * @param $table String Table name
      * @param $key Primary Key
      * @param $value Value
-     * @return false|array Return element if success, false otherwise
+     * @return false|iterable Return element if success, false otherwise
      */
-    public static function findOne(string $table, string|array $key, string|array $value): array {
+    public static function findOne(string $table, string|iterable $key, string|iterable $value): iterable {
         $query = 'SELECT * FROM `' . $table . '` WHERE ';
         if (!is_array($key) && !is_array($value)) {
             $query .= $key . '="' . Db::escape($value) . '"';
@@ -199,10 +199,10 @@ class Db
 
     /**
      * @param $table String Table name
-     * @param array $payload Data to insert
+     * @param iterable $payload Data to insert
      * @return false|integer Return new inserted id if success, false otherwise
      */
-    public static function insert(string $table, array $content): int|false {
+    public static function insert(string $table, iterable $content): int|false {
         $sql = 'INSERT INTO ' . $table;
         if(empty($content)) {
             $sql .= ' VALUES ()';
@@ -217,10 +217,10 @@ class Db
 
     /**
      * @param $table String table name
-     * @param array $content Data to insert
+     * @param iterable $content Data to insert
      * @param $where String Where condition
      */
-    public static function update(string $table, array $content, array $where = NULL): void {
+    public static function update(string $table, iterable $content, array $where = NULL): void {
         $sql = 'UPDATE '.$table.' SET ';
 
         $sql .= self::formatColumns($content);
@@ -232,7 +232,7 @@ class Db
         self::query($sql);
     }
 
-    private static function formatColumns(array $columns): string {
+    private static function formatColumns(iterable $columns): string {
         $cols = array();
         foreach ($columns as $column => $value) {
             if($value === NULL) {
@@ -258,7 +258,7 @@ class Db
      * @param $value Value
      * @return false|true Return true if success, false otherwise
      */
-    public static function delete(string $table, string|array $key, string|array $value): bool {
+    public static function delete(string $table, string|iterable $key, string|iterable $value): bool {
         if (!is_array($key) && !is_array($value)) {
             return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
         }
@@ -274,7 +274,7 @@ class Db
         return self::query($query);
     }
 
-    private static function parseWhere(array $array): string {
+    private static function parseWhere(iterable $array): string {
         $op = array_key_first($array);
         $values = $array[$op];
         $arraySize = count($values);
