@@ -68,7 +68,7 @@ class MiddlewareManager implements MiddlewareManagerInterface
         // Wrap each middleware around the next action
         foreach ($middlewares as $m) {
             $next = function () use ($m, $next, $handler) {
-                $m->handler = $handler; // Set the handler for the middleware
+                // $m->handler = $handler; // Set the handler for the middleware
                 return $m->handle($next, $handler); // Execute the middleware
             };
         }
