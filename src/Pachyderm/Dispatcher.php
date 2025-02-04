@@ -37,7 +37,7 @@ class Dispatcher
     {
         if (is_array($middlewares)) {
             foreach ($middlewares as $m) {
-                $this->_middlewareManager->registerMiddleware(new $m());
+                $this->_middlewareManager->registerMiddleware($m);
             }
         }
     }

@@ -7,5 +7,5 @@ use Pachyderm\Exchange\Response;
 interface MiddlewareManagerInterface
 {
     public function executeChain(\Closure $action, array $handler): array|Response;
-    public function registerMiddleware(MiddlewareInterface $middleware);
+    public function registerMiddleware(string $middleware);
 }

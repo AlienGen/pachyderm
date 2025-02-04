@@ -41,7 +41,11 @@ class MiddlewareManager implements MiddlewareManagerInterface
 
         // Add additional middleware
         foreach ($additional as $toAdd) {
-            $middlewares[] = $toAdd;
+            $instance = new $toAdd();
+            if(!$instance instanceof MiddlewareInterface) {
+                throw new MiddlewareException('Middleware ' . $toAdd . ' must implement MiddlewareInterface');
+            }
+            $middlewares[] = $instance;
         }
 
         return $middlewares;
@@ -82,12 +86,16 @@ class MiddlewareManager implements MiddlewareManagerInterface
      * @param MiddlewareInterface $middleware The middleware to register.
      * @throws MiddlewareException If registration fails.
      */
-    public function registerMiddleware(MiddlewareInterface $middleware): void
+    public function registerMiddleware(string $middleware): void
     {
         try {
-            $this->middlewares[] = $middleware; // Add middleware to the list
+            $instance = new $middleware();
+            if(!$instance instanceof MiddlewareInterface) {
+                throw new MiddlewareException('Middleware ' . $middleware . ' must implement MiddlewareInterface');
+            }
+            $this->middlewares[] = $instance; // Add middleware to the list
         } catch (\Exception $e) {
-            throw new MiddlewareException('Error registering middleware: ' . get_class($middleware));
+            throw new MiddlewareException('Error registering middleware ' . $middleware . ': ' . $e->getMessage());
         }
     }
 }
