@@ -2,6 +2,8 @@
 
 namespace Pachyderm\Http;
 
+use Pachyderm\Exceptions\BadRequestException;
+
 class HttpHandler implements HttpInterface
 {
     protected $_statusCode;
@@ -30,9 +32,18 @@ class HttpHandler implements HttpInterface
         return file_get_contents('php://input');
     }
 
-    public function bodyParams(): array|null
+    public function bodyParams(): mixed
     {
-        return json_decode($this->body(), true);
+        $body = $this->body();
+        if ($body === null) {
+            return [];
+        }
+
+        $decodedBody = json_decode($body, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new BadRequestException('Invalid JSON body: ' . $body);
+        }
+        return $decodedBody;
     }
 
     public function setStatusCode(int $statusCode): HttpInterface

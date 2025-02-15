@@ -11,7 +11,7 @@ interface HttpInterface
     public function uri(): string;
     public function path(): string;
     public function body(): string|null;
-    public function bodyParams(): array|null;
+    public function bodyParams(): mixed;
 
 
     /**
