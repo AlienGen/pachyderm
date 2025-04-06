@@ -35,7 +35,7 @@ class HttpHandler implements HttpInterface
     public function bodyParams(): mixed
     {
         $body = $this->body();
-        if ($body === null) {
+        if (empty($body)) {
             return [];
         }
 

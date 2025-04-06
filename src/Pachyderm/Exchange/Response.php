@@ -178,7 +178,7 @@ class Response implements \Countable, \ArrayAccess
      * @param string $url
      * @return Response
      */
-    public static function redirect(string $url = null) {
+    public static function redirect(string|null $url = null) {
         $headers = $url ? ['Location' => $url] : [];
         return new Response(302, null, $headers);
     }
