@@ -15,9 +15,8 @@ class JSONEncoderMiddleware implements MiddlewareInterface
             header('Content-Type: application/json');
         }
 
-        if (count($response) != 2 && is_integer($response[0])) {
-            $response[1] = json_encode(array('error' => 'Invalid response format!'));
-            return $response;
+        if (count($response) < 2 || !is_integer($response[0])) {
+            return [500, json_encode(array('error' => 'Invalid response format!'))];
         }
 
         if (empty($response[1])) {
