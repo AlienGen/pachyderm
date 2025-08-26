@@ -42,8 +42,8 @@ class MiddlewareManager implements MiddlewareManagerInterface
         // Add additional middleware
         foreach ($additional as $toAdd) {
             $instance = new $toAdd();
-            if(!$instance instanceof MiddlewareInterface) {
-                throw new MiddlewareException('Middleware ' . $toAdd . ' must implement MiddlewareInterface');
+            if(!$instance instanceof MiddlewareInterface && !$instance instanceof ExtendedMiddlewareInterface) {
+                throw new MiddlewareException('Middleware ' . $toAdd . ' must implement MiddlewareInterface or ExtendedMiddlewareInterface');
             }
             $middlewares[] = $instance;
         }
@@ -90,8 +90,8 @@ class MiddlewareManager implements MiddlewareManagerInterface
     {
         try {
             $instance = new $middleware();
-            if(!$instance instanceof MiddlewareInterface) {
-                throw new MiddlewareException('Middleware ' . $middleware . ' must implement MiddlewareInterface');
+            if(!$instance instanceof MiddlewareInterface && !$instance instanceof ExtendedMiddlewareInterface) {
+                throw new MiddlewareException('Middleware ' . $middleware . ' must implement MiddlewareInterface or ExtendedMiddlewareInterface');
             }
             $this->middlewares[] = $instance; // Add middleware to the list
         } catch (\Exception $e) {
