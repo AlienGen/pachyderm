@@ -3,7 +3,7 @@
         "description": "A Micro PHP framework for APIs",
         "type": "library",
         "require": {
-                "php": ">=8"
+                "php": ">=8.4"
         },
         "license": "MIT",
         "authors": [
