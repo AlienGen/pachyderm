@@ -65,7 +65,7 @@ class HttpHandler implements HttpInterface
         return $this;
     }
 
-    public function setBody(string $body): HttpInterface
+    public function setBody(string|null $body): HttpInterface
     {
         $this->_body = $body;
         return $this;
