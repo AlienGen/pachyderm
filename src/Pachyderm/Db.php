@@ -20,7 +20,7 @@ class Db
 
     protected $_middlewares = [];
 
-    public function __construct(iterable $parameters = NULL)
+    public function __construct(iterable|null $parameters = NULL)
     {
         if($parameters === NULL) {
             $parameters = [
@@ -34,8 +34,8 @@ class Db
         $this->_mysql = new \MySQLi($parameters['host'], $parameters['username'], $parameters['password'], $parameters['database']);
     }
 
-    public static function getInstance(string $config = NULL): Db {
-        // If not specific configuration is provided, set the default "database" configuration.
+    public static function getInstance(string|null $config = NULL): Db {
+        // If no specific configuration is provided, set the default "database" configuration.
         if($config === NULL) {
             $config = 'database';
         }
@@ -54,12 +54,12 @@ class Db
         return self::$_instance[$config];
     }
 
-    public static function query(string $query) {
+    public static function query(string $query): mixed {
         $db = self::getInstance();
         return $db->_query($query);
     }
 
-    public static function escape(string $field = NULL): string|null {
+    public static function escape(string|null $field = NULL): string|null {
         if(is_null($field)) {
             return null;
         }
@@ -67,7 +67,7 @@ class Db
         return $db->mysql()->real_escape_string($field);
     }
 
-    public function mysql() {
+    public function mysql(): \MySQLi {
         return $this->_mysql;
     }
 
@@ -76,7 +76,7 @@ class Db
         $this->_middlewares[] = $middleware;
     }
 
-    public function _query(string $query) {
+    public function _query(string $query): mixed {
 
         $middlewares = array_reverse($this->_middlewares);
 
@@ -103,7 +103,7 @@ class Db
         {
             return $id;
         }
-        return FALSE;
+        return null;
     }
 
     public function getAffectedRows(): int
@@ -146,7 +146,7 @@ class Db
      * @param $limit integer Limit
      * @return iterable Return array of objects
      */
-    public static function findAll(string $table, iterable $where = NULL, iterable $order = NULL, int $offset = 0, int $limit = 50): iterable {
+    public static function findAll(string $table, iterable|null $where = NULL, iterable|null $order = NULL, int $offset = 0, int $limit = 50): iterable {
         $sql = 'SELECT * FROM `' . $table . '`';
 
         if(!empty($where)) {
@@ -179,7 +179,7 @@ class Db
      * @param $value Value
      * @return false|iterable Return element if success, false otherwise
      */
-    public static function findOne(string $table, string|iterable $key, string|iterable $value): iterable {
+    public static function findOne(string $table, string|iterable $key, string|iterable $value): iterable|false {
         $query = 'SELECT * FROM `' . $table . '` WHERE ';
         if (!is_array($key) && !is_array($value)) {
             $query .= $key . '="' . Db::escape($value) . '"';
@@ -220,7 +220,7 @@ class Db
      * @param iterable $content Data to insert
      * @param $where String Where condition
      */
-    public static function update(string $table, iterable $content, array $where = NULL): void {
+    public static function update(string $table, iterable $content, array|null $where = NULL): void {
         $sql = 'UPDATE '.$table.' SET ';
 
         $sql .= self::formatColumns($content);
@@ -260,7 +260,8 @@ class Db
      */
     public static function delete(string $table, string|iterable $key, string|iterable $value): bool {
         if (!is_array($key) && !is_array($value)) {
-            return self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
+            $result = self::query('DELETE FROM `' . $table . '` WHERE `' . $key . '`="' . Db::escape($value) . '"');
+            return $result !== false;
         }
 
         $query = 'DELETE FROM `' . $table . '` WHERE ';
@@ -271,11 +272,15 @@ class Db
                 $query .= ' AND ';
         }
 
-        return self::query($query);
+        $result = self::query($query);
+        return $result !== false;
     }
 
     private static function parseWhere(iterable $array): string {
         $op = array_key_first($array);
+        if ($op === null) {
+            throw new \Exception('Empty where condition array');
+        }
         $values = $array[$op];
         $arraySize = count($values);
 

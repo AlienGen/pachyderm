@@ -33,7 +33,7 @@ class Dispatcher
         $this->_httpInterface = $httpInterface;
     }
 
-    public function registerMiddlewares(array $middlewares)
+    public function registerMiddlewares(array $middlewares): void
     {
         if (is_array($middlewares)) {
             foreach ($middlewares as $m) {
@@ -61,7 +61,7 @@ class Dispatcher
     /**
      * Declare a new request endpoint.
      */
-    public function request(string $method, string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = [])
+    public function request(string $method, string $endpoint, \Closure $action, array $localMiddleware = [], array $blacklistMiddleware = []): Dispatcher
     {
         $this->_routes[$method][$endpoint] = [
             'action' => $action,
@@ -247,7 +247,7 @@ class Dispatcher
      * Evaluate if the endpoint is matching the path from the request.
      * Extract the parameters if succeed.
      */
-    private function isRouteMatching($endpoint, $path, &$pathParameters = array()): bool
+    private function isRouteMatching(string $endpoint, string $path, array &$pathParameters = array()): bool
     {
         /**
          * Retrieve the params from the endpoint.

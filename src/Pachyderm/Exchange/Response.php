@@ -12,9 +12,9 @@ namespace Pachyderm\Exchange;
  */
 class Response implements \Countable, \ArrayAccess
 {
-    private $statusCode; // HTTP status code
-    private $headers;    // Array of HTTP headers
-    private $body;       // Response body content
+    private int $statusCode; // HTTP status code
+    private array $headers;    // Array of HTTP headers
+    private mixed $body;       // Response body content
 
     /**
      * Constructor to initialize the response with a status code, body, and headers.
@@ -23,7 +23,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body Response body content.
      * @param array $headers Array of HTTP headers.
      */
-    public function __construct($statusCode = 200, mixed $body = null, array $headers = [])
+    public function __construct(int $statusCode = 200, mixed $body = null, array $headers = [])
     {
         $this->statusCode = $statusCode;
         $this->headers = $headers;
@@ -37,7 +37,7 @@ class Response implements \Countable, \ArrayAccess
      * @param string $value Header value.
      * @return $this
      */
-    public function header($header, $value) {
+    public function header(string $header, string $value): Response {
         $this->headers[$header] = $value;
         return $this;
     }
@@ -109,7 +109,7 @@ class Response implements \Countable, \ArrayAccess
      * @param int $offset
      * @param mixed $value
      */
-    public function offsetSet($offset, $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         if($offset == 0) {
             $this->statusCode = $value;
@@ -132,7 +132,7 @@ class Response implements \Countable, \ArrayAccess
     public function offsetUnset($offset): void
     {
         if($offset == 0) {
-            $this->statusCode = null;
+            $this->statusCode = 0;
         }
 
         if($offset == 1) {
@@ -158,7 +158,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body
      * @return Response
      */
-    public static function success(mixed $body = null) {
+    public static function success(mixed $body = null): Response {
         return new Response(200, $body, []);
     }
 
@@ -168,7 +168,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body
      * @return Response
      */
-    public static function created(mixed $body = null) {
+    public static function created(mixed $body = null): Response {
         return new Response(201, $body, []);
     }
 
@@ -178,7 +178,7 @@ class Response implements \Countable, \ArrayAccess
      * @param string $url
      * @return Response
      */
-    public static function redirect(string|null $url = null) {
+    public static function redirect(string|null $url = null): Response {
         $headers = $url ? ['Location' => $url] : [];
         return new Response(302, null, $headers);
     }
@@ -189,7 +189,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body
      * @return Response
      */
-    public static function badRequest(mixed $body = null) {
+    public static function badRequest(mixed $body = null): Response {
         return new Response(400, $body, []);
     }
 
@@ -198,7 +198,7 @@ class Response implements \Countable, \ArrayAccess
      *
      * @return Response
      */
-    public static function unauthorized(mixed $body = null) {
+    public static function unauthorized(mixed $body = null): Response {
         return new Response(401, $body);
     }
 
@@ -208,7 +208,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body
      * @return Response
      */
-    public static function forbidden(mixed $body = null) {
+    public static function forbidden(mixed $body = null): Response {
         return new Response(403, $body);
     }
 
@@ -217,7 +217,7 @@ class Response implements \Countable, \ArrayAccess
      *
      * @return Response
      */
-    public static function notFound(mixed $body = null) {
+    public static function notFound(mixed $body = null): Response {
         return new Response(404, $body);
     }
 
@@ -227,7 +227,7 @@ class Response implements \Countable, \ArrayAccess
      * @param mixed $body
      * @return Response
      */
-    public static function error(mixed $body = null) {
+    public static function error(mixed $body = null): Response {
         return new Response(500, $body, []);
     }
 

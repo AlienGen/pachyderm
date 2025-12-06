@@ -6,9 +6,9 @@ use Pachyderm\Exceptions\BadRequestException;
 
 class HttpHandler implements HttpInterface
 {
-    protected $_statusCode;
+    protected int|null $_statusCode = null;
     protected array $_headers = array();
-    protected string $_body;
+    protected string|null $_body = null;
 
     public function method(): string
     {
@@ -27,7 +27,7 @@ class HttpHandler implements HttpInterface
         return substr($uri, 0, $end ? $end : strlen($uri));
     }
 
-    public function body(): string | null
+    public function body(): string|null
     {
         return file_get_contents('php://input');
     }
@@ -73,8 +73,9 @@ class HttpHandler implements HttpInterface
 
     public function send(): void
     {
-        $httpCode = $this->httpCode($this->_statusCode);
-        header('HTTP/1.1 ' . $this->_statusCode . ' ' . $httpCode);
+        $statusCode = $this->_statusCode ?? 200;
+        $httpCode = $this->httpCode($statusCode);
+        header('HTTP/1.1 ' . $statusCode . ' ' . $httpCode);
         foreach ($this->_headers as $header => $value) {
             header($header . ': ' . $value);
         }
