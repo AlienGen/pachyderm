@@ -200,9 +200,9 @@ class Db
     /**
      * @param $table String Table name
      * @param iterable $payload Data to insert
-     * @return false|integer Return new inserted id if success, false otherwise
+     * @return null|integer Return new inserted id if success, null otherwise
      */
-    public static function insert(string $table, iterable $content): int|false {
+    public static function insert(string $table, iterable $content): int|null {
         $sql = 'INSERT INTO ' . $table;
         if(empty($content)) {
             $sql .= ' VALUES ()';
