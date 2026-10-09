@@ -194,7 +194,10 @@ class Db
         }
 
         $result = Db::query($query);
-        return $result->fetch_assoc();
+        $row = $result->fetch_assoc();
+        // mysqli_result::fetch_assoc() returns null when no row is found;
+        // honor the declared return type (iterable|false).
+        return $row === null ? false : $row;
     }
 
     /**
